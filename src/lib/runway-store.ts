@@ -5,6 +5,8 @@ type RunwayState = {
 };
 
 const STORAGE_KEY = "runway-ai-cfo-state";
+const CLOUD_SOURCE_IDS = ["aws", "gcp", "azure", "cloudflare"];
+const BANK_SOURCE_IDS = ["banking"];
 
 function readInitialState(): RunwayState {
 	if (typeof window === "undefined") {
@@ -43,6 +45,13 @@ export function connectRunwaySource(sourceId: string) {
 			connectedSourceIds: [...state.connectedSourceIds, sourceId],
 		};
 	});
+}
+
+export function hasRequiredForecastSources(sourceIds: string[]) {
+	return (
+		sourceIds.some((sourceId) => CLOUD_SOURCE_IDS.includes(sourceId)) &&
+		sourceIds.some((sourceId) => BANK_SOURCE_IDS.includes(sourceId))
+	);
 }
 
 runwayStore.subscribe(() => {

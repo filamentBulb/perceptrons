@@ -365,10 +365,11 @@ const providerMocks: Record<string, ProviderMock> = {
 		],
 	},
 	banking: {
-		headline: "Operating account confirms burn and vendor timing.",
-		monthlyIn: "$148,000",
+		headline:
+			"Operating account confirms positive cash flow and vendor timing.",
+		monthlyIn: "$238,000",
 		monthlyOut: "$203,600",
-		net: "-$55,600",
+		net: "$34,400",
 		services: [
 			{
 				name: "Operating balance",
@@ -408,12 +409,12 @@ const providerMocks: Record<string, ProviderMock> = {
 };
 
 const monthlyBudget = [
-	{ label: "May", revenue: 112, cloud: 49, payroll: 102, tools: 27 },
-	{ label: "Jun", revenue: 121, cloud: 55, payroll: 102, tools: 29 },
-	{ label: "Jul", revenue: 129, cloud: 61, payroll: 102, tools: 31 },
-	{ label: "Aug", revenue: 137, cloud: 66, payroll: 102, tools: 36 },
-	{ label: "Sep", revenue: 151, cloud: 81, payroll: 106, tools: 39 },
-	{ label: "Oct", revenue: 162, cloud: 94, payroll: 106, tools: 42 },
+	{ label: "May", revenue: 205, cloud: 49, payroll: 102, tools: 27 },
+	{ label: "Jun", revenue: 218, cloud: 55, payroll: 102, tools: 29 },
+	{ label: "Jul", revenue: 232, cloud: 61, payroll: 102, tools: 31 },
+	{ label: "Aug", revenue: 248, cloud: 66, payroll: 102, tools: 36 },
+	{ label: "Sep", revenue: 269, cloud: 81, payroll: 106, tools: 39 },
+	{ label: "Oct", revenue: 291, cloud: 94, payroll: 106, tools: 42 },
 ];
 
 const serviceSpend = [
