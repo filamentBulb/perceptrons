@@ -1,4 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	cloudPricingCatalogue,
+	cloudPricingDatasetSummary,
+	cloudPricingEstimate,
+	cloudPricingLineItems,
+	cloudPricingProviderTotals,
+	formatPricingUsd,
+	providerLabel,
+} from "#/data/cloud-pricing";
 
 type ChatMessage = {
 	role: "assistant" | "user";
@@ -129,7 +138,7 @@ async function askWatsonxAiCfo(
 		messages: [
 			{
 				role: "system",
-				content: buildSystemPrompt(connectedSourceIds),
+				content: buildSystemPrompt(messages, connectedSourceIds),
 			},
 			...messages.map((message) =>
 				message.role === "user"
@@ -233,8 +242,16 @@ async function getIamAccessToken(apiKey: string) {
 
 	return cachedIamToken.accessToken;
 }
-function buildSystemPrompt(connectedSourceIds: string[]) {
+function buildSystemPrompt(
+	messages: ChatMessage[],
+	connectedSourceIds: string[],
+) {
 	const connected = new Set(connectedSourceIds);
+	const latestUserMessage =
+		messages.findLast((message) => message.role === "user")?.content ?? "";
+	const isUserGrowthQuestion =
+		latestUserMessage.trim().toLowerCase() ===
+		"what happens if our users grow from 100k to 1 million?";
 	const providerContext = AI_CFO_CONTEXT.sources
 		.map((source) => {
 			const status = connected.has(source.id) ? "connected" : "available";
@@ -258,16 +275,41 @@ Signals:
 ${events}`;
 		})
 		.join("\n\n");
+	const cloudPricingContext = buildCloudPricingContext(isUserGrowthQuestion);
+	const growthQuestionInstructions = isUserGrowthQuestion
+		? `
+Exact question mode:
+- The user asked: "What happens if our users grow from 100k to 1 million?"
+- Assume the current plan is vertical scaling: the company keeps buying larger single machines/plans and usage grows roughly 10x with users.
+- Explain that vertical scaling is simpler but can make the bill jump close to 10x and creates a single capacity ceiling.
+- Give horizontal scaling suggestions: split load across more smaller servers, autoscale workers, cache more traffic at the edge, move batch jobs off peak hours, and set monthly spend alerts.
+- Include a compact cost comparison using cloud-pricing assumptions: current public-pricing baseline, 10x vertical estimate, and a horizontal estimate that targets 15-30% lower than the pure 10x case through autoscaling/cache/batch scheduling.
+- Tell the user that at 1 million users, enterprise contracts and committed-use discounts can lower cloud prices. Use a directional 10-35% discount range unless the context provides a provider-specific commitment; explain that the exact discount depends on provider, contract length, and minimum spend.
+- Do not discuss infrastructure jargon unless immediately translated into plain pricing language.`
+		: "";
 
 	return `You are Runway AI CFO, a concise finance and infrastructure advisor for a startup.
 
 Use the full provider and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. Do not invent bank balances, provider names, or precise figures beyond this context unless you clearly label them as assumptions.
 
 Answer in markdown. Prefer:
+- 4-7 short bullets maximum
 - a short direct answer first
-- the financial driver behind it
+- pricing and cash impact before technical detail
 - 2-4 specific actions
-- any assumptions or missing source caveats
+- any assumptions or missing source caveats in one final bullet
+
+Audience:
+- Write for a non-technical founder/CFO.
+- Use plain pricing language: "servers", "database", "storage", "requests", "monthly bill", and "cash runway".
+- Avoid unexplained cloud terms like EC2, ECS, VM, Kubernetes, vCPU, SKU, or LCU. If a source uses those terms, translate them into plain cost categories.
+- Keep responses compact and direct. Do not give long tutorials.
+
+Pricing assumptions:
+- For all cloud-cost answers, use src/data/cloud-pricing as the pricing baseline.
+- Treat catalogue prices as public unit prices for the selected regions.
+- If a service is unpriced or estimated in the catalogue, say the number is directional.
+${growthQuestionInstructions}
 
 Baseline:
 - Current operating cash: $410k
@@ -279,8 +321,77 @@ Baseline:
 
 Connected source IDs: ${connectedSourceIds.length ? connectedSourceIds.join(", ") : "none"}
 
+Cloud pricing catalogue context:
+${cloudPricingContext}
+
 Provider, revenue, and banking context:
 ${providerContext}`;
+}
+
+function buildCloudPricingContext(includeGrowthScenario: boolean) {
+	const summary = cloudPricingEstimate.summary;
+	const tenXMonthlyCost = summary.currentMonthlyCost * 10;
+	const horizontalLow = tenXMonthlyCost * 0.7;
+	const horizontalHigh = tenXMonthlyCost * 0.85;
+	const growthScenario = includeGrowthScenario
+		? `
+100k to 1M user scenario anchors:
+- User growth factor: 10x
+- Vertical scaling directional cost: about ${formatPricingUsd(tenXMonthlyCost)}/mo before optimization
+- Horizontal scaling target range: about ${formatPricingUsd(horizontalLow)}-${formatPricingUsd(horizontalHigh)}/mo if autoscaling, caching, and off-peak jobs reduce waste`
+		: "";
+	const regions = Object.entries(cloudPricingCatalogue.regions)
+		.map(([provider, region]) => `${providerLabel(provider)} ${region}`)
+		.join(", ");
+	const providerTotals = cloudPricingProviderTotals
+		.map(
+			(provider) =>
+				`- ${provider.label}: ${formatPricingUsd(provider.monthlyCostUsd)}/mo`,
+		)
+		.join("\n");
+	const topLines = cloudPricingLineItems
+		.slice(0, 10)
+		.map(
+			(line) =>
+				`- ${providerLabel(line.provider)} ${plainServiceName(line.service)}: ${formatPricingUsd(line.monthlyCostUsd)}/mo at ${formatPricingUsd(line.unitPriceUsd)} per ${line.unit}`,
+		)
+		.join("\n");
+
+	return `Generated: ${cloudPricingDatasetSummary.generatedAt}
+Source policy: ${cloudPricingDatasetSummary.sourcePolicy}
+Regions: ${regions}
+Current public-pricing baseline: ${formatPricingUsd(summary.currentMonthlyCost)}/mo
+6-month baseline: ${formatPricingUsd(summary.sixMonthForecastTotal)}
+6-month optimized estimate: ${formatPricingUsd(summary.optimizedSixMonthTotal)}
+Catalogue coverage: ${cloudPricingDatasetSummary.priceCoveragePct}% priced, ${cloudPricingDatasetSummary.unpricedLineItems} unpriced lines
+${growthScenario}
+Provider baseline:
+${providerTotals}
+Largest public-pricing assumptions:
+${topLines}`;
+}
+
+function plainServiceName(service: string) {
+	const serviceLabels: Record<string, string> = {
+		EC2: "servers",
+		"ECS Fargate": "app workers",
+		"CloudWatch Logs": "logs",
+		S3: "storage",
+		RDS: "database",
+		"Cloud Load Balancing": "traffic routing",
+		"Compute Engine": "servers",
+		"Cloud Run": "app requests",
+		"Cloud Logging": "logs",
+		"Cloud Storage": "storage",
+		"Azure Virtual Machines": "servers",
+		"Azure App Service": "app hosting",
+		"Azure Kubernetes Service": "app cluster",
+		"Azure Blob Storage": "storage",
+		"Cloudflare Workers": "edge requests",
+		"Cloudflare R2": "storage",
+	};
+
+	return serviceLabels[service] ?? service;
 }
 
 const AI_CFO_CONTEXT = {
