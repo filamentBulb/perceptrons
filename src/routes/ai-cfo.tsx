@@ -3,7 +3,6 @@ import { useStore } from "@tanstack/react-store";
 import {
 	ArrowRight,
 	Bot,
-	CheckCircle2,
 	Cloud,
 	Loader2,
 	Send,
@@ -95,7 +94,10 @@ function AiCfoChatScreen() {
 			});
 
 			if (!response.ok) {
-				throw new Error("AI CFO request failed");
+				const errorBody = (await response.json().catch(() => ({}))) as {
+					error?: string;
+				};
+				throw new Error(errorBody.error ?? "AI CFO request failed");
 			}
 
 			const body = (await response.json()) as { reply?: string };
@@ -109,14 +111,15 @@ function AiCfoChatScreen() {
 						"I could not produce a forecast from that question yet.",
 				},
 			]);
-		} catch {
+		} catch (error) {
+			const fallbackMessage =
+				error instanceof Error ? error.message : "The AI CFO request failed.";
 			setMessages((current) => [
 				...current,
 				{
 					id: crypto.randomUUID(),
 					role: "assistant",
-					content:
-						"The AI CFO endpoint is reachable from the chat screen, but the response failed. Once the LLM provider is connected, this is the surface that will stream model output.",
+					content: `${fallbackMessage} Check the IBM watsonx project/space configuration on the server.`,
 				},
 			]);
 		} finally {
@@ -152,11 +155,6 @@ function AiCfoChatScreen() {
 							icon={Wallet}
 							label="Bank source"
 							value={connectedSourceIds.includes("banking") ? "Connected" : ""}
-						/>
-						<ContextPill
-							icon={CheckCircle2}
-							label="LLM endpoint"
-							value="/api/ai-cfo/chat"
 						/>
 					</div>
 

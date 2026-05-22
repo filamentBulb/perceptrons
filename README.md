@@ -72,6 +72,10 @@ Am example chat application built with TanStack Start, TanStack Store, and Claud
 
 ```env
 ANTHROPIC_API_KEY=your_anthropic_api_key
+IBM_API_KEY=your_ibm_cloud_api_key
+IBM_WATSONX_PROJECT_ID=your_watsonx_project_id
+IBM_WATSONX_URL=https://eu-de.ml.cloud.ibm.com
+IBM_WATSONX_MODEL_ID=ibm/granite-3-3-8b-instruct
 ```
 
 ## ✨ Features

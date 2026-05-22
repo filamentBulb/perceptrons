@@ -1,21 +1,29 @@
-import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
+import tailwindcss from "@tailwindcss/vite";
+import { devtools } from "@tanstack/devtools-vite";
 
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
-import viteReact from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { nitro } from 'nitro/vite'
+import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
+import { defineConfig, loadEnv } from "vite";
 
-const config = defineConfig({
-  resolve: { tsconfigPaths: true },
-  plugins: [
-    devtools(),
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
-    tailwindcss(),
-    tanstackStart(),
-    viteReact(),
-  ],
-})
+const config = defineConfig(({ mode }) => {
+	const env = loadEnv(mode, process.cwd(), "");
+	const port = Number.parseInt(env.PORT ?? "", 10);
 
-export default config
+	return {
+		resolve: { tsconfigPaths: true },
+		server: {
+			port: Number.isFinite(port) ? port : 3000,
+		},
+		plugins: [
+			devtools(),
+			nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+			tailwindcss(),
+			tanstackStart(),
+			viteReact(),
+		],
+	};
+});
+
+export default config;
