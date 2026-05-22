@@ -20,6 +20,7 @@ const WATSONX_URL =
 	process.env.IBM_WATSONX_URL ?? "https://eu-de.ml.cloud.ibm.com";
 const WATSONX_MODEL_IDS = uniqueModelIds([
 	...(process.env.IBM_WATSONX_MODEL_ID?.split(",") ?? []),
+	"meta-llama/llama-3-2-11b-vision-instruct",
 	"Qwen-Qwen2-5-VL-32B-Instruct",
 	"deepseek-ai/deepSeek-r1-distill-llama-8b-curated",
 	"deepseek-ai/deepSeek-r1-distill-llama-70b-curated",
@@ -140,10 +141,8 @@ async function askWatsonxAiCfo(
 			),
 		],
 		parameters: {
-			max_new_tokens: 900,
-			temperature: 0.2,
-			top_p: 0.85,
-			time_limit: 20000,
+			max_tokens: 2000,
+			temperature: 0.7,
 		},
 	};
 	const modelErrors: string[] = [];
