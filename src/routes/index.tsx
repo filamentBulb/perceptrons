@@ -4,6 +4,7 @@ import {
 	Activity,
 	ArrowRight,
 	Banknote,
+	Bot,
 	Check,
 	Cloud,
 	CreditCard,
@@ -15,12 +16,14 @@ import {
 	ReceiptText,
 	Server,
 	ShieldAlert,
+	Sparkles,
 	TrendingDown,
 	Wallet,
 	X,
 	Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { cloudBudgetForecast } from "#/data/cloud-forecast";
 import {
 	cloudPricingDatasetSummary,
 	cloudPricingInputs,
@@ -33,16 +36,20 @@ import {
 	sourceLabel,
 	topPricingLines,
 } from "#/data/cloud-pricing";
-import { cloudBudgetForecast } from "#/data/cloud-forecast";
 import { realProviderData } from "#/data/providers";
 import type {
+	CloudForecastPoint,
 	CloudPricingLineItem,
 	CloudPricingServiceEstimate,
-	CloudForecastPoint,
 	CloudScenario,
 	ProviderMock,
 } from "#/lib/provider-types";
-import { connectRunwaySource, runwayStore } from "../lib/runway-store";
+import {
+	connectRunwaySource,
+	disconnectRunwaySource,
+	hasRequiredForecastSources,
+	runwayStore,
+} from "../lib/runway-store";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -66,7 +73,8 @@ const integrations: Integration[] = [
 		icon: Cloud,
 		authLabel: "AWS Price List Bulk API",
 		scope: ["AmazonEC2", "AmazonECS", "AmazonCloudWatch", "AmazonS3", "AWSELB"],
-		connectCopy: "Use public AWS price list files. No AWS account credentials are required.",
+		connectCopy:
+			"Use public AWS price list files. No AWS account credentials are required.",
 	},
 	{
 		id: "gcp",
@@ -76,7 +84,8 @@ const integrations: Integration[] = [
 		icon: Cloud,
 		authLabel: "Cloud Billing Catalog API",
 		scope: ["Compute Engine", "Cloud Run", "Cloud Logging", "Cloud Storage"],
-		connectCopy: "Use public billing catalogue SKUs for the selected European region.",
+		connectCopy:
+			"Use public billing catalogue SKUs for the selected European region.",
 	},
 	{
 		id: "azure",
@@ -91,7 +100,8 @@ const integrations: Integration[] = [
 			"Storage",
 			"Application Gateway",
 		],
-		connectCopy: "Use unauthenticated Azure retail rates. No tenant access is required.",
+		connectCopy:
+			"Use unauthenticated Azure retail rates. No tenant access is required.",
 	},
 	{
 		id: "cloudflare",
@@ -101,7 +111,8 @@ const integrations: Integration[] = [
 		icon: Zap,
 		authLabel: "Cloudflare pricing docs",
 		scope: ["Workers", "Workers Logpush", "R2", "Load Balancing"],
-		connectCopy: "Read official Cloudflare pricing docs and mark plan-dependent rows.",
+		connectCopy:
+			"Read official Cloudflare pricing docs and mark plan-dependent rows.",
 	},
 	{
 		id: "stripe",
@@ -423,7 +434,9 @@ const fallbackScenario: CloudScenario = {
 	numbers: [["Current run-rate", "$0"]],
 	risk: "HIGH",
 	keyRisk: "The forecast has no public pricing data.",
-	recommendations: ["Generate src/data/cloud-pricing/estimate.json from official pricing sources."],
+	recommendations: [
+		"Generate src/data/cloud-pricing/estimate.json from official pricing sources.",
+	],
 	confidence: 0,
 	basedOn: ["No src/data/cloud-pricing/estimate.json rows"],
 	metrics: {
@@ -442,10 +455,11 @@ function App() {
 	const [pendingIntegration, setPendingIntegration] =
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
-	const [dashboardUnlocked, setDashboardUnlocked] = useState(true);
+	const [dashboardUnlocked] = useState(true);
 	const [activeScenarioId, setActiveScenarioId] = useState(
 		scenarios[0]?.id ?? "current-trend",
 	);
+	const canViewForecasts = hasRequiredForecastSources(connected);
 
 	const activeScenario = useMemo(
 		() =>
@@ -480,7 +494,7 @@ function App() {
 		if (connected.includes(integration.id)) {
 			// Already connected, show option to disconnect or view dashboard
 			const shouldDisconnect = window.confirm(
-				`${integration.name} is already connected. Do you want to disconnect it?`
+				`${integration.name} is already connected. Do you want to disconnect it?`,
 			);
 			if (shouldDisconnect) {
 				disconnectRunwaySource(integration.id);
@@ -968,7 +982,8 @@ function App() {
 								{activeScenario.prompt}
 							</p>
 							<p className="m-0 mt-1 text-sm text-[var(--sea-ink-soft)]">
-								Based on generated public pricing data from scraper.py --pricing-estimates.
+								Based on generated public pricing data from scraper.py
+								--pricing-estimates.
 							</p>
 						</div>
 					</div>
@@ -1096,6 +1111,28 @@ function MetricCard({
 				{note}
 			</p>
 		</article>
+	);
+}
+
+function ResponseSection({
+	icon: Icon,
+	title,
+	children,
+}: {
+	icon: typeof Wallet;
+	title: string;
+	children: ReactNode;
+}) {
+	return (
+		<section className="mb-4 rounded-lg border border-[var(--line)] bg-white/45 p-4 last:mb-0 dark:bg-white/5">
+			<div className="mb-3 flex items-center gap-2">
+				<Icon className="text-[var(--lagoon-deep)]" size={16} />
+				<h3 className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
+					{title}
+				</h3>
+			</div>
+			{children}
+		</section>
 	);
 }
 

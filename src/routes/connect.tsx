@@ -41,7 +41,13 @@ const integrations: Integration[] = [
 		detail: "EC2, ECS Fargate, CloudWatch Logs, S3, ALB public prices",
 		authLabel: "AWS Price List Bulk API",
 		icon: Cloud,
-		scopes: ["AmazonEC2", "AmazonECS", "AmazonCloudWatch", "AmazonS3", "AWSELB"],
+		scopes: [
+			"AmazonEC2",
+			"AmazonECS",
+			"AmazonCloudWatch",
+			"AmazonS3",
+			"AWSELB",
+		],
 		summary: "AWS pricing uses public regional price list JSON files.",
 		stats: [
 			["Monthly spend", "$42,380"],
@@ -60,7 +66,8 @@ const integrations: Integration[] = [
 		id: "gcp",
 		name: "Google Cloud Platform",
 		category: "Cloud",
-		detail: "Compute Engine, Cloud Run, Cloud Logging, Cloud Storage, Load Balancing",
+		detail:
+			"Compute Engine, Cloud Run, Cloud Logging, Cloud Storage, Load Balancing",
 		authLabel: "Cloud Billing Catalog API",
 		icon: Cloud,
 		scopes: ["Compute Engine", "Cloud Run", "Cloud Logging", "Cloud Storage"],
@@ -113,7 +120,8 @@ const integrations: Integration[] = [
 		authLabel: "Cloudflare pricing docs",
 		icon: Zap,
 		scopes: ["Workers", "Workers Logpush", "R2", "Load Balancing"],
-		summary: "Cloudflare pricing is parsed from official pricing documentation.",
+		summary:
+			"Cloudflare pricing is parsed from official pricing documentation.",
 		stats: [
 			["Monthly spend", "$7,180"],
 			["Bandwidth", "42 TB"],
@@ -270,7 +278,8 @@ function ConnectSources() {
 					</div>
 					<p className="m-0 mt-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
 						The forecast page reads generated JSON from scraper.py
-						--pricing-estimates for budget, cost-driver, and scenario simulations.
+						--pricing-estimates for budget, cost-driver, and scenario
+						simulations.
 					</p>
 				</div>
 			</section>
@@ -555,11 +564,15 @@ function ConnectionModal({
 						<h3 className="mb-4 mt-2 text-lg font-extrabold">
 							{integration.summary}
 						</h3>
-						<div className="mb-4 grid gap-2 sm:grid-cols-3">
-							{integration.stats.map(([label, value]) => (
-								<div className="rounded-lg bg-white/10 p-3" key={label}>
-									<p className="m-0 text-xs text-slate-300">{label}</p>
-									<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
+						{isFinalSyncStep ? (
+							<>
+								<div className="mb-4 grid gap-2 sm:grid-cols-3">
+									{integration.stats.map(([label, value]) => (
+										<div className="rounded-lg bg-white/10 p-3" key={label}>
+											<p className="m-0 text-xs text-slate-300">{label}</p>
+											<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
+										</div>
+									))}
 								</div>
 								<div className="space-y-2">
 									{integration.services
