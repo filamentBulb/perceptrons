@@ -1,0 +1,1151 @@
+{
+  "schemaVersion": 1,
+  "kind": "public_cloud_pricing_estimate",
+  "generatedAt": "2026-05-22T15:35:22+00:00",
+  "currency": "USD",
+  "sourcePolicy": "official_public_apis_docs",
+  "horizonMonths": 6,
+  "input": {
+    "schemaVersion": 1,
+    "currency": "USD",
+    "applyFreeTier": false,
+    "regions": {
+      "aws": "eu-central-1",
+      "gcp": "europe-west3",
+      "azure": "germanywestcentral",
+      "cloudflare": "global"
+    },
+    "providers": {
+      "aws": {
+        "ec2InstanceTypes": [
+          "t3.micro",
+          "t3.small",
+          "t3.medium"
+        ],
+        "ec2DefaultInstanceType": "t3.medium"
+      },
+      "gcp": {
+        "computeMachineTypes": [
+          "e2-micro",
+          "e2-small",
+          "e2-medium"
+        ],
+        "computeDefaultMachineType": "e2-medium"
+      },
+      "azure": {
+        "vmSkus": [
+          "Standard_B1s",
+          "Standard_B2s",
+          "Standard_D2s_v5"
+        ],
+        "vmDefaultSku": "Standard_D2s_v5",
+        "aksNodeSku": "Standard_D2s_v5"
+      },
+      "cloudflare": {
+        "workersPlan": "paid"
+      }
+    },
+    "usage": {
+      "compute": {
+        "instanceCount": 1,
+        "hoursPerMonth": 730
+      },
+      "ecsFargate": {
+        "taskCount": 1,
+        "vcpu": 0.5,
+        "memoryGb": 1,
+        "hoursPerMonth": 730
+      },
+      "aks": {
+        "nodeCount": 1,
+        "hoursPerMonth": 730
+      },
+      "cloudRun": {
+        "requestsPerMonth": 1000000,
+        "vcpuSecondsPerMonth": 180000,
+        "memoryGbSecondsPerMonth": 360000
+      },
+      "workers": {
+        "requestsPerMonth": 10000000,
+        "cpuMillisecondsPerMonth": 30000000
+      },
+      "logs": {
+        "ingestGbPerMonth": 100,
+        "retentionGbMonth": 100,
+        "logpushRequestsPerMonth": 10000000
+      },
+      "storage": {
+        "storageGbMonth": 100,
+        "classAOperationsPerMonth": 10000,
+        "classBOperationsPerMonth": 100000
+      },
+      "loadBalancer": {
+        "count": 1,
+        "hoursPerMonth": 730,
+        "lcuHoursPerMonth": 730,
+        "dataGbPerMonth": 100
+      }
+    }
+  },
+  "summary": {
+    "currentMonthlyCost": 841.59,
+    "previousMonthlyCost": 0,
+    "trendPct": 0,
+    "nextMonthForecast": 841.59,
+    "sixMonthForecastTotal": 5049.56,
+    "optimizedSixMonthTotal": 4493.01,
+    "actualCoveragePct": 94.4,
+    "estimatedCoveragePct": 5.6,
+    "risk": "HIGH"
+  },
+  "providers": [
+    {
+      "id": "aws",
+      "label": "AWS",
+      "currentAmount": 123.36,
+      "runRateAmount": 123.36,
+      "previousAmount": 0,
+      "trendPct": 0,
+      "isEstimated": false,
+      "sourceKind": "public_pricing",
+      "warnings": []
+    },
+    {
+      "id": "gcp",
+      "label": "GCP",
+      "currentAmount": 73.1,
+      "runRateAmount": 73.1,
+      "previousAmount": 0,
+      "trendPct": 0,
+      "isEstimated": false,
+      "sourceKind": "public_pricing",
+      "warnings": [
+        "GCP service Cloud Load Balancing not found in public billing catalogue.",
+        "GCP Cloud Run vcpu-second price not found for europe-west3.",
+        "GCP Cloud Run memory-gb-second price not found for europe-west3.",
+        "GCP Cloud Run request price not found for europe-west3.",
+        "GCP Cloud Logging logs-ingest-gb price not found for europe-west3.",
+        "GCP Compute Engine E2 docs prices were not machine-readable; use GCP_PUBLIC_PRICING_API_KEY for official SKU rows.",
+        "GCP Cloud Run request price was not machine-readable from official docs.",
+        "GCP Cloud Load Balancing regional data-processing price was not machine-readable from official docs.",
+        "gcp/Cloud Run/request has no official price row.",
+        "gcp/Cloud Load Balancing/data-processing-gb has no official price row."
+      ]
+    },
+    {
+      "id": "azure",
+      "label": "Azure",
+      "currentAmount": 634.45,
+      "runRateAmount": 634.45,
+      "previousAmount": 0,
+      "trendPct": 0,
+      "isEstimated": false,
+      "sourceKind": "public_pricing",
+      "warnings": []
+    },
+    {
+      "id": "cloudflare",
+      "label": "Cloudflare",
+      "currentAmount": 10.68,
+      "runRateAmount": 10.68,
+      "previousAmount": 0,
+      "trendPct": 0,
+      "isEstimated": false,
+      "sourceKind": "public_pricing",
+      "warnings": []
+    }
+  ],
+  "sourceRows": [
+    [
+      "AWS",
+      "Official public price",
+      "eu-central-1"
+    ],
+    [
+      "GCP",
+      "Official public price",
+      "europe-west3"
+    ],
+    [
+      "Azure",
+      "Official public price",
+      "germanywestcentral"
+    ],
+    [
+      "Cloudflare",
+      "Official public price",
+      "global"
+    ]
+  ],
+  "monthlyBudget": [
+    {
+      "month": "2026-05",
+      "label": "May",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.79,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    },
+    {
+      "month": "2026-06",
+      "label": "Jun",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    },
+    {
+      "month": "2026-07",
+      "label": "Jul",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    },
+    {
+      "month": "2026-08",
+      "label": "Aug",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    },
+    {
+      "month": "2026-09",
+      "label": "Sep",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    },
+    {
+      "month": "2026-10",
+      "label": "Oct",
+      "cloud": 0.84,
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84,
+      "isActual": true,
+      "estimatedPct": 5.6
+    }
+  ],
+  "serviceSpend": [
+    {
+      "label": "Azure",
+      "value": 0.63,
+      "color": "#7c3aed",
+      "isEstimated": false,
+      "sourceKind": "public_pricing"
+    },
+    {
+      "label": "AWS",
+      "value": 0.12,
+      "color": "#2563eb",
+      "isEstimated": false,
+      "sourceKind": "public_pricing"
+    },
+    {
+      "label": "GCP",
+      "value": 0.07,
+      "color": "#16a34a",
+      "isEstimated": false,
+      "sourceKind": "public_pricing"
+    },
+    {
+      "label": "Cloudflare",
+      "value": 0.01,
+      "color": "#f59e0b",
+      "isEstimated": false,
+      "sourceKind": "public_pricing"
+    }
+  ],
+  "chart": [
+    {
+      "label": "May",
+      "baseline": 0.84,
+      "optimized": 0.79,
+      "runRate": 0.84
+    },
+    {
+      "label": "Jun",
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84
+    },
+    {
+      "label": "Jul",
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84
+    },
+    {
+      "label": "Aug",
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84
+    },
+    {
+      "label": "Sep",
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84
+    },
+    {
+      "label": "Oct",
+      "baseline": 0.84,
+      "optimized": 0.74,
+      "runRate": 0.84
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "public-price-baseline",
+      "prompt": "Use official public retail pricing",
+      "headline": "Budget is estimated from public retail prices and editable usage quantities.",
+      "summary": "This is a hypothetical purchase model: it answers what these common cloud services would cost in the selected European regions.",
+      "numbers": [
+        [
+          "Monthly estimate",
+          "$842"
+        ],
+        [
+          "Six-month estimate",
+          "$5.0k"
+        ],
+        [
+          "Priced line items",
+          "34"
+        ],
+        [
+          "Price coverage",
+          "94%"
+        ]
+      ],
+      "risk": "HIGH",
+      "keyRisk": "Unpriced rows are excluded from totals; review warnings before relying on a provider comparison.",
+      "recommendations": [
+        "Adjust src/data/cloud-pricing/inputs.json to match expected usage.",
+        "Rerun python scraper.py --pricing-estimates before each planning review.",
+        "Treat taxes, credits, commitments, and negotiated discounts as out of scope."
+      ],
+      "confidence": 94,
+      "basedOn": [
+        "Official public pricing APIs and docs",
+        "34 priced line item(s)",
+        "2 unpriced line item(s)"
+      ],
+      "metrics": {
+        "infraCost": "$842",
+        "forecast": "$5.0k",
+        "savings": "$0",
+        "confidence": "94% priced"
+      },
+      "chart": [
+        {
+          "label": "May",
+          "baseline": 0.84,
+          "optimized": 0.79,
+          "runRate": 0.84
+        },
+        {
+          "label": "Jun",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Jul",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Aug",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Sep",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Oct",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        }
+      ]
+    },
+    {
+      "id": "optimization",
+      "prompt": "Apply a 12% usage reduction target",
+      "headline": "Reducing forecast usage lowers the six-month public-price budget.",
+      "summary": "The optimizer keeps current-month usage at a 6% reduction and applies a 12% reduction to later months.",
+      "numbers": [
+        [
+          "Potential six-month savings",
+          "$557"
+        ],
+        [
+          "Optimized monthly target",
+          "$741"
+        ],
+        [
+          "Monthly estimate",
+          "$842"
+        ],
+        [
+          "Price coverage",
+          "94%"
+        ]
+      ],
+      "risk": "MEDIUM",
+      "keyRisk": "Savings are directional because the model uses simple quantities, not autoscaling or invoice exports.",
+      "recommendations": [
+        "Start with compute hours, log ingestion, and load balancer capacity.",
+        "Update usage quantities before comparing providers.",
+        "Keep unpriced services separate from savings claims."
+      ],
+      "confidence": 89,
+      "basedOn": [
+        "12% reduction on forecast months",
+        "$842 monthly estimate",
+        "94% public-price coverage"
+      ],
+      "metrics": {
+        "infraCost": "$842",
+        "forecast": "$4.5k",
+        "savings": "$557",
+        "confidence": "94% priced"
+      },
+      "chart": [
+        {
+          "label": "May",
+          "baseline": 0.84,
+          "optimized": 0.79,
+          "runRate": 0.84
+        },
+        {
+          "label": "Jun",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Jul",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Aug",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Sep",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        },
+        {
+          "label": "Oct",
+          "baseline": 0.84,
+          "optimized": 0.74,
+          "runRate": 0.84
+        }
+      ]
+    },
+    {
+      "id": "usage-spike",
+      "prompt": "What if usage is 25% higher?",
+      "headline": "A 25% usage increase raises the public-price budget immediately.",
+      "summary": "This stress case multiplies the monthly estimate by 1.25 across the six-month horizon.",
+      "numbers": [
+        [
+          "Spike monthly estimate",
+          "$1.1k"
+        ],
+        [
+          "Extra monthly cost",
+          "$210"
+        ],
+        [
+          "Six-month stress total",
+          "$6.3k"
+        ],
+        [
+          "Price coverage",
+          "94%"
+        ]
+      ],
+      "risk": "HIGH",
+      "keyRisk": "Storage operations, logs, and load balancer capacity can scale differently than compute hours.",
+      "recommendations": [
+        "Model expected request and log volume explicitly.",
+        "Keep egress and managed database pricing out until their usage is known.",
+        "Use this stress case as a budget guardrail, not an invoice prediction."
+      ],
+      "confidence": 84,
+      "basedOn": [
+        "25% usage multiplier",
+        "$842 baseline monthly estimate",
+        "2 unpriced line item(s)"
+      ],
+      "metrics": {
+        "infraCost": "$1.1k",
+        "forecast": "$6.3k",
+        "savings": "$0",
+        "confidence": "94% priced"
+      },
+      "chart": [
+        {
+          "label": "May",
+          "baseline": 1.05,
+          "optimized": 0.79,
+          "runRate": 1.05
+        },
+        {
+          "label": "Jun",
+          "baseline": 1.05,
+          "optimized": 0.74,
+          "runRate": 1.05
+        },
+        {
+          "label": "Jul",
+          "baseline": 1.05,
+          "optimized": 0.74,
+          "runRate": 1.05
+        },
+        {
+          "label": "Aug",
+          "baseline": 1.05,
+          "optimized": 0.74,
+          "runRate": 1.05
+        },
+        {
+          "label": "Sep",
+          "baseline": 1.05,
+          "optimized": 0.74,
+          "runRate": 1.05
+        },
+        {
+          "label": "Oct",
+          "baseline": 1.05,
+          "optimized": 0.74,
+          "runRate": 1.05
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "GCP service Cloud Load Balancing not found in public billing catalogue.",
+    "GCP Cloud Run vcpu-second price not found for europe-west3.",
+    "GCP Cloud Run memory-gb-second price not found for europe-west3.",
+    "GCP Cloud Run request price not found for europe-west3.",
+    "GCP Cloud Logging logs-ingest-gb price not found for europe-west3.",
+    "GCP Compute Engine E2 docs prices were not machine-readable; use GCP_PUBLIC_PRICING_API_KEY for official SKU rows.",
+    "GCP Cloud Run request price was not machine-readable from official docs.",
+    "GCP Cloud Load Balancing regional data-processing price was not machine-readable from official docs.",
+    "gcp/Cloud Run/request has no official price row.",
+    "gcp/Cloud Load Balancing/data-processing-gb has no official price row."
+  ],
+  "estimateRows": [
+    {
+      "provider": "aws",
+      "service": "EC2",
+      "monthlyCostUsd": 35.04
+    },
+    {
+      "provider": "aws",
+      "service": "CloudWatch Logs",
+      "monthlyCostUsd": 34.74
+    },
+    {
+      "provider": "aws",
+      "service": "ALB",
+      "monthlyCostUsd": 25.55
+    },
+    {
+      "provider": "aws",
+      "service": "ECS Fargate",
+      "monthlyCostUsd": 22.52926
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "monthlyCostUsd": 5.504
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Logging",
+      "monthlyCostUsd": 50.0
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Load Balancing",
+      "monthlyCostUsd": 18.25
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Run",
+      "monthlyCostUsd": 3.96
+    },
+    {
+      "provider": "gcp",
+      "service": "Compute Engine",
+      "monthlyCostUsd": 0.649388
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "monthlyCostUsd": 0.24
+    },
+    {
+      "provider": "azure",
+      "service": "Log Analytics Workspace",
+      "monthlyCostUsd": 312.0
+    },
+    {
+      "provider": "azure",
+      "service": "Application Gateway",
+      "monthlyCostUsd": 151.84
+    },
+    {
+      "provider": "azure",
+      "service": "Virtual Machines",
+      "monthlyCostUsd": 83.95
+    },
+    {
+      "provider": "azure",
+      "service": "AKS",
+      "monthlyCostUsd": 83.95
+    },
+    {
+      "provider": "azure",
+      "service": "Blob Storage",
+      "monthlyCostUsd": 2.71
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "monthlyCostUsd": 8.6
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "monthlyCostUsd": 1.581
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Logpush",
+      "monthlyCostUsd": 0.5
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Load Balancing",
+      "monthlyCostUsd": 0.0
+    }
+  ],
+  "lineItems": [
+    {
+      "provider": "aws",
+      "service": "EC2",
+      "sku": "t3.medium",
+      "description": "$0.048 per On Demand Linux t3.medium Instance Hour",
+      "quantity": 730.0,
+      "quantityUnit": "instance-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.048,
+      "monthlyCostUsd": 35.04,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Compute Engine",
+      "sku": "e2-medium",
+      "description": "e2-medium Linux on-demand estimate from E2 core and RAM SKUs",
+      "quantity": 730.0,
+      "quantityUnit": "instance-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.000889573,
+      "monthlyCostUsd": 0.649388,
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Virtual Machines",
+      "sku": "Standard_D2s_v5",
+      "description": "Virtual Machines Dsv5 Series",
+      "quantity": 730.0,
+      "quantityUnit": "instance-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.115,
+      "monthlyCostUsd": 83.95,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "ECS Fargate",
+      "sku": "fargate-vcpu-hour",
+      "description": "AWS Fargate - Windows - vCPU  - EU (Frankfurt)",
+      "quantity": 365.0,
+      "quantityUnit": "vcpu-hours",
+      "unit": "vcpu-hour",
+      "unitPriceUsd": 0.053544,
+      "monthlyCostUsd": 19.54356,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "ECS Fargate",
+      "sku": "fargate-memory-gb-hour",
+      "description": "AWS Fargate - ARM - Memory - EU (Frankfurt)",
+      "quantity": 730.0,
+      "quantityUnit": "gb-hours",
+      "unit": "gb-hour",
+      "unitPriceUsd": 0.00409,
+      "monthlyCostUsd": 2.9857,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Run",
+      "sku": "vcpu-second",
+      "description": "Cloud Run services CPU price from official docs",
+      "quantity": 180000.0,
+      "quantityUnit": "vcpu-seconds",
+      "unit": "vcpu-second",
+      "unitPriceUsd": 1.8e-05,
+      "monthlyCostUsd": 3.24,
+      "sourceUrl": "https://cloud.google.com/run/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Run",
+      "sku": "memory-gb-second",
+      "description": "Cloud Run services memory price from official docs",
+      "quantity": 360000.0,
+      "quantityUnit": "gb-seconds",
+      "unit": "gb-second",
+      "unitPriceUsd": 2e-06,
+      "monthlyCostUsd": 0.72,
+      "sourceUrl": "https://cloud.google.com/run/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "AKS",
+      "sku": "node-Standard_D2s_v5",
+      "description": "AKS node pool VM cost using Standard_D2s_v5",
+      "quantity": 730.0,
+      "quantityUnit": "node-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.115,
+      "monthlyCostUsd": 83.95,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": "AKS estimate models worker-node VM cost; public control-plane cost is not added unless priced."
+    },
+    {
+      "provider": "aws",
+      "service": "CloudWatch Logs",
+      "sku": "logs-ingest-gb",
+      "description": "$0.315 per GB custom log data ingested in Infrequent Access log class -EU (Frankfurt) ",
+      "quantity": 100.0,
+      "quantityUnit": "GB",
+      "unit": "GB",
+      "unitPriceUsd": 0.315,
+      "monthlyCostUsd": 31.5,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudWatch/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "CloudWatch Logs",
+      "sku": "logs-storage-gb-month",
+      "description": "$0.0324 per GB-mo of log storage - EU (Frankfurt)",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0324,
+      "monthlyCostUsd": 3.24,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudWatch/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Logging",
+      "sku": "logs-ingest-gb",
+      "description": "Cloud Logging storage and ingestion price from official docs; includes default 30-day log bucket storage.",
+      "quantity": 100.0,
+      "quantityUnit": "GB",
+      "unit": "GB",
+      "unitPriceUsd": 0.5,
+      "monthlyCostUsd": 50.0,
+      "sourceUrl": "https://cloud.google.com/logging/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Logging",
+      "sku": "logs-storage-gb-month",
+      "description": "Log Storage cost",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0,
+      "monthlyCostUsd": 0.0,
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Log Analytics Workspace",
+      "sku": "logs-ingest-gb",
+      "description": "Log Analytics",
+      "quantity": 100.0,
+      "quantityUnit": "GB",
+      "unit": "GB",
+      "unitPriceUsd": 2.99,
+      "monthlyCostUsd": 299.0,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Log Analytics Workspace",
+      "sku": "logs-retention-gb-month",
+      "description": "Log Analytics",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.13,
+      "monthlyCostUsd": 13.0,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Logpush",
+      "sku": "workers-logpush-million",
+      "description": "Workers Trace Events Logpush overage",
+      "quantity": 10.0,
+      "quantityUnit": "million requests",
+      "unit": "million-requests",
+      "unitPriceUsd": 0.05,
+      "monthlyCostUsd": 0.5,
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-storage-gb-month",
+      "description": "$0.0245 per GB - first 50 TB / month of storage used",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0245,
+      "monthlyCostUsd": 2.45,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-class-a-request",
+      "description": "$0.0054 per 1,000 PUT, COPY, POST, or LIST requests",
+      "quantity": 10000.0,
+      "quantityUnit": "requests",
+      "unit": "request",
+      "unitPriceUsd": 5.4e-06,
+      "monthlyCostUsd": 0.054,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-class-b-request",
+      "description": "$0.03 per 1,000 GetAGLocation requests for S3 Access Grants",
+      "quantity": 100000.0,
+      "quantityUnit": "requests",
+      "unit": "request",
+      "unitPriceUsd": 3e-05,
+      "monthlyCostUsd": 3.0,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "standard-storage-gb-month",
+      "description": "Storage Intelligence Standard Early Termination Fee",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0,
+      "monthlyCostUsd": 0.0,
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "class-a-operation",
+      "description": "Multi-Region Durable Reduced Availability Class A Operations",
+      "quantity": 10000.0,
+      "quantityUnit": "operations",
+      "unit": "operation",
+      "unitPriceUsd": 2e-05,
+      "monthlyCostUsd": 0.2,
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "class-b-operation",
+      "description": "Dual-Region Autoclass Standard Class B Operations",
+      "quantity": 100000.0,
+      "quantityUnit": "operations",
+      "unit": "operation",
+      "unitPriceUsd": 4e-07,
+      "monthlyCostUsd": 0.04,
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Blob Storage",
+      "sku": "hot-lrs-storage-gb-month",
+      "description": "Files v2",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0271,
+      "monthlyCostUsd": 2.71,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "standard-storage-gb-month",
+      "description": "R2 Standard storage",
+      "quantity": 100.0,
+      "quantityUnit": "GB-month",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.015,
+      "monthlyCostUsd": 1.5,
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "class-a-million-operations",
+      "description": "R2 Class A operations",
+      "quantity": 0.01,
+      "quantityUnit": "million operations",
+      "unit": "million-operations",
+      "unitPriceUsd": 4.5,
+      "monthlyCostUsd": 0.045,
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "class-b-million-operations",
+      "description": "R2 Class B operations",
+      "quantity": 0.1,
+      "quantityUnit": "million operations",
+      "unit": "million-operations",
+      "unitPriceUsd": 0.36,
+      "monthlyCostUsd": 0.036,
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "ALB",
+      "sku": "alb-hour",
+      "description": "$0.027 per Application LoadBalancer-hour (or partial hour)",
+      "quantity": 730.0,
+      "quantityUnit": "load-balancer-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.027,
+      "monthlyCostUsd": 19.71,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSELB/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "aws",
+      "service": "ALB",
+      "sku": "alb-lcu-hour",
+      "description": "$0.008 per reserved Application load balancer capacity unit-hour",
+      "quantity": 730.0,
+      "quantityUnit": "LCU-hours",
+      "unit": "lcu-hour",
+      "unitPriceUsd": 0.008,
+      "monthlyCostUsd": 5.84,
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSELB/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "notes": ""
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Load Balancing",
+      "sku": "forwarding-rule-hour",
+      "description": "Cloud Load Balancing first five forwarding rules price from official docs",
+      "quantity": 730.0,
+      "quantityUnit": "forwarding-rule-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.025,
+      "monthlyCostUsd": 18.25,
+      "sourceUrl": "https://cloud.google.com/load-balancing/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Application Gateway",
+      "sku": "standard-v2-hour",
+      "description": "Application Gateway Standard v2",
+      "quantity": 730.0,
+      "quantityUnit": "gateway-hours",
+      "unit": "hour",
+      "unitPriceUsd": 0.2,
+      "monthlyCostUsd": 146.0,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "azure",
+      "service": "Application Gateway",
+      "sku": "capacity-unit-hour",
+      "description": "Application Gateway Standard v2",
+      "quantity": 730.0,
+      "quantityUnit": "capacity-unit-hours",
+      "unit": "capacity-unit-hour",
+      "unitPriceUsd": 0.008,
+      "monthlyCostUsd": 5.84,
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Load Balancing",
+      "sku": "included-or-plan-dependent",
+      "description": "Cloudflare load balancing is modeled as included or plan-dependent for this budget view.",
+      "quantity": 1,
+      "quantityUnit": "included",
+      "unit": "included",
+      "unitPriceUsd": 0.0,
+      "monthlyCostUsd": 0.0,
+      "sourceUrl": "https://www.cloudflare.com/plans/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "paid-plan-minimum",
+      "description": "Workers Paid plan monthly minimum",
+      "quantity": 1,
+      "quantityUnit": "month",
+      "unit": "month",
+      "unitPriceUsd": 5.0,
+      "monthlyCostUsd": 5.0,
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "request-million",
+      "description": "Workers Standard request overage",
+      "quantity": 10.0,
+      "quantityUnit": "million requests",
+      "unit": "million-requests",
+      "unitPriceUsd": 0.3,
+      "monthlyCostUsd": 3.0,
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "cpu-million-ms",
+      "description": "Workers Standard CPU overage",
+      "quantity": 30.0,
+      "quantityUnit": "million CPU milliseconds",
+      "unit": "million-cpu-ms",
+      "unitPriceUsd": 0.02,
+      "monthlyCostUsd": 0.6,
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "notes": ""
+    }
+  ],
+  "unpricedItems": [
+    "gcp/Cloud Run/request has no official price row.",
+    "gcp/Cloud Load Balancing/data-processing-gb has no official price row."
+  ],
+  "catalogue": {
+    "itemsCount": 40,
+    "pricedLineItems": 34,
+    "unpricedLineItems": 2
+  }
+}

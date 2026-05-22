@@ -38,11 +38,11 @@ const integrations: Integration[] = [
 		id: "aws",
 		name: "Amazon Web Services",
 		category: "Cloud",
-		detail: "EC2, ECS, Amplify, databases, storage, data transfer",
-		authLabel: "AWS IAM Identity Center",
+		detail: "EC2, ECS Fargate, CloudWatch Logs, S3, ALB public prices",
+		authLabel: "AWS Price List Bulk API",
 		icon: Cloud,
-		scopes: ["Cost Explorer", "EC2 inventory", "ECS services", "Amplify apps"],
-		summary: "18 AWS resources found across production and staging.",
+		scopes: ["AmazonEC2", "AmazonECS", "AmazonCloudWatch", "AmazonS3", "AWSELB"],
+		summary: "AWS pricing uses public regional price list JSON files.",
 		stats: [
 			["Monthly spend", "$42,380"],
 			["Projected growth", "+22%"],
@@ -60,11 +60,11 @@ const integrations: Integration[] = [
 		id: "gcp",
 		name: "Google Cloud Platform",
 		category: "Cloud",
-		detail: "VPS capacity, Cloud Run, Vertex AI, API Gateway, BigQuery",
-		authLabel: "Google Cloud OAuth",
+		detail: "Compute Engine, Cloud Run, Cloud Logging, Cloud Storage, Load Balancing",
+		authLabel: "Cloud Billing Catalog API",
 		icon: Cloud,
-		scopes: ["Billing export", "Compute Engine", "Cloud Run", "API Gateway"],
-		summary: "GCP usage includes VPS workers, APIs, and AI workloads.",
+		scopes: ["Compute Engine", "Cloud Run", "Cloud Logging", "Cloud Storage"],
+		summary: "GCP pricing uses public billing catalogue SKUs where available.",
 		stats: [
 			["Monthly spend", "$21,640"],
 			["API calls", "18.4M"],
@@ -79,19 +79,41 @@ const integrations: Integration[] = [
 		],
 	},
 	{
+		id: "azure",
+		name: "Microsoft Azure",
+		category: "Cloud",
+		detail: "VMs, AKS node VMs, Log Analytics, Blob Storage, App Gateway",
+		authLabel: "Azure Retail Prices API",
+		icon: Cloud,
+		scopes: [
+			"Virtual Machines",
+			"Azure Monitor",
+			"Storage",
+			"Application Gateway",
+		],
+		summary: "Azure pricing uses the unauthenticated retail prices API.",
+		stats: [
+			["Region", "Germany West Central"],
+			["Default VM", "D2s v5"],
+			["Source", "Retail API"],
+		],
+		services: [
+			["Virtual Machines", "D2s v5", "public hourly rate"],
+			["AKS", "node VM cost", "derived from VM SKU"],
+			["Log Analytics", "ingest + retention", "public unit rate"],
+			["Blob Storage", "Hot LRS", "public GB-month rate"],
+			["Application Gateway", "Standard v2", "public hourly rate"],
+		],
+	},
+	{
 		id: "cloudflare",
 		name: "Cloudflare",
 		category: "Cloud",
-		detail: "CDN bandwidth, Workers, Images, R2, cache efficiency",
-		authLabel: "Cloudflare API token",
+		detail: "Workers, Workers Logpush, R2, and included load balancing model",
+		authLabel: "Cloudflare pricing docs",
 		icon: Zap,
-		scopes: [
-			"CDN analytics",
-			"Workers invocations",
-			"Bandwidth",
-			"Cache ratio",
-		],
-		summary: "Edge caching helps margin, but Workers traffic is climbing.",
+		scopes: ["Workers", "Workers Logpush", "R2", "Load Balancing"],
+		summary: "Cloudflare pricing is parsed from official pricing documentation.",
 		stats: [
 			["Monthly spend", "$7,180"],
 			["Bandwidth", "42 TB"],
@@ -166,7 +188,7 @@ function ForecastLink({ enabled }: { enabled: boolean }) {
 					<ArrowRight size={16} />
 				</button>
 				<p className="m-0 mt-2 text-xs font-bold text-[var(--sea-ink-soft)]">
-					Connect at least one cloud provider and one bank source.
+					Select at least one public pricing source.
 				</p>
 			</div>
 		);
@@ -177,7 +199,7 @@ function ForecastLink({ enabled }: { enabled: boolean }) {
 			className="inline-flex items-center justify-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white no-underline shadow-[0_18px_34px_rgba(23,58,64,0.18)]"
 			href="/"
 		>
-			Open live forecasts
+			Open public-price forecasts
 			<ArrowRight size={16} />
 		</a>
 	);
@@ -191,13 +213,10 @@ function ConnectSources() {
 	const connectedIntegrations = integrations.filter((integration) =>
 		connected.includes(integration.id),
 	);
-	const hasConnectedBank = connectedIntegrations.some(
-		(integration) => integration.category === "Banking",
-	);
 	const hasConnectedCloud = connectedIntegrations.some(
 		(integration) => integration.category === "Cloud",
 	);
-	const canOpenForecasts = hasConnectedBank && hasConnectedCloud;
+	const canOpenForecasts = hasConnectedCloud;
 
 	const openModal = (integration: Integration) => {
 		if (connected.includes(integration.id)) return;
@@ -220,13 +239,13 @@ function ConnectSources() {
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
 				<div>
-					<p className="island-kicker mb-3">Secure setup</p>
+					<p className="island-kicker mb-3">Public pricing setup</p>
 					<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
-						Connect your cloud, revenue, and bank data.
+						Choose public cloud pricing sources.
 					</h1>
 					<p className="mb-7 max-w-2xl text-base leading-7 text-[var(--sea-ink-soft)] sm:text-lg">
-						Authorize providers, sync infrastructure inventory, read Stripe cash
-						movement, and prepare the live forecast context.
+						Use official retail pricing APIs and docs to prepare a hypothetical
+						cloud budget forecast. No provider account credentials are needed.
 					</p>
 					<ForecastLink enabled={canOpenForecasts} />
 				</div>
@@ -234,9 +253,9 @@ function ConnectSources() {
 				<div className="island-shell rounded-2xl p-4 sm:p-5">
 					<div className="mb-4 flex items-center justify-between gap-3">
 						<div>
-							<p className="island-kicker mb-1">Connection status</p>
+							<p className="island-kicker mb-1">Pricing source status</p>
 							<h2 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-								{connected.length}/{integrations.length} sources synced
+								{connected.length}/{integrations.length} sources selected
 							</h2>
 						</div>
 						<ShieldCheck className="text-emerald-600" size={28} />
@@ -250,8 +269,8 @@ function ConnectSources() {
 						/>
 					</div>
 					<p className="m-0 mt-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
-						When sources are connected, the live forecast page can use this
-						context for runway, budget, cost-driver, and AI CFO simulations.
+						The forecast page reads generated JSON from scraper.py
+						--pricing-estimates for budget, cost-driver, and scenario simulations.
 					</p>
 				</div>
 			</section>
@@ -296,7 +315,7 @@ function ConnectSources() {
 								onClick={() => openModal(integration)}
 								type="button"
 							>
-								{isConnected ? "Connected" : "Connect"}
+								{isConnected ? "Selected" : "Select"}
 							</button>
 						</article>
 					);
@@ -307,9 +326,9 @@ function ConnectSources() {
 				<section className="mt-10">
 					<div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
 						<div>
-							<p className="island-kicker mb-2">Synced source data</p>
+							<p className="island-kicker mb-2">Selected pricing sources</p>
 							<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-								Data ready for live forecasts
+								Data ready for public-price forecasts
 							</h2>
 						</div>
 						<ForecastLink enabled={canOpenForecasts} />
@@ -338,7 +357,7 @@ function SyncedPreview({ integration }: { integration: Integration }) {
 	return (
 		<div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
 			<p className="m-0 text-xs font-extrabold uppercase text-emerald-700 dark:text-emerald-200">
-				Source data synced
+				Pricing source selected
 			</p>
 			<p className="m-0 mt-1 text-sm font-bold text-[var(--sea-ink)]">
 				{integration.summary}
@@ -365,7 +384,7 @@ function DataPanel({ integration }: { integration: Integration }) {
 					</div>
 				</div>
 				<span className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-200">
-					Synced
+					Selected
 				</span>
 			</div>
 
@@ -424,19 +443,19 @@ function ConnectionModal({
 	const [syncReady, setSyncReady] = useState(step !== 2);
 	const steps = [
 		{
-			title: `Connect ${integration.name}`,
-			body: "Start a secure read-only connection for financial and infrastructure data.",
-			action: "Open authorization screen",
+			title: `Select ${integration.name}`,
+			body: "Use the official public pricing source for this provider.",
+			action: "Use pricing source",
 		},
 		{
 			title: integration.authLabel,
-			body: "Approve the requested scopes. No write permissions are requested.",
-			action: "Allow read-only access",
+			body: "Review the public service families included in this estimate.",
+			action: "Confirm source",
 		},
 		{
-			title: "Syncing source data",
-			body: "Importing resource counts, monthly costs, cash movement, and forecast context.",
-			action: `Connect ${integration.name}`,
+			title: "Loading pricing model",
+			body: "Applying the generated retail-price JSON to the forecast context.",
+			action: `Select ${integration.name}`,
 		},
 	];
 	const current = steps[step];
@@ -464,7 +483,7 @@ function ConnectionModal({
 							<Icon size={21} />
 						</div>
 						<div>
-							<p className="island-kicker mb-1">Secure authorization</p>
+							<p className="island-kicker mb-1">Pricing source</p>
 							<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
 								{current.title}
 							</h2>
@@ -497,7 +516,7 @@ function ConnectionModal({
 						</p>
 						<div className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] p-3">
 							<p className="m-0 text-xs font-extrabold uppercase text-[var(--kicker)]">
-								Requested scope
+								Included pricing families
 							</p>
 							<ul className="m-0 mt-2 space-y-2 p-0">
 								{integration.scopes.map((scope) => (
@@ -525,26 +544,22 @@ function ConnectionModal({
 							) : (
 								<ExternalLink size={16} />
 							)}
-							{isButtonDisabled ? "Syncing source data..." : current.action}
+							{isButtonDisabled ? "Loading pricing data..." : current.action}
 						</button>
 					</div>
 
 					<div className="rounded-xl border border-[var(--line)] bg-slate-950 p-4 text-white">
-						{isFinalSyncStep ? (
-							<>
-								<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
-									Preview data
-								</p>
-								<h3 className="mb-4 mt-2 text-lg font-extrabold">
-									{integration.summary}
-								</h3>
-								<div className="mb-4 grid gap-2 sm:grid-cols-3">
-									{integration.stats.map(([label, value]) => (
-										<div className="rounded-lg bg-white/10 p-3" key={label}>
-											<p className="m-0 text-xs text-slate-300">{label}</p>
-											<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
-										</div>
-									))}
+						<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+							Preview cloud data
+						</p>
+						<h3 className="mb-4 mt-2 text-lg font-extrabold">
+							{integration.summary}
+						</h3>
+						<div className="mb-4 grid gap-2 sm:grid-cols-3">
+							{integration.stats.map(([label, value]) => (
+								<div className="rounded-lg bg-white/10 p-3" key={label}>
+									<p className="m-0 text-xs text-slate-300">{label}</p>
+									<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
 								</div>
 								<div className="space-y-2">
 									{integration.services

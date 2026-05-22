@@ -1,0 +1,684 @@
+{
+  "schemaVersion": 1,
+  "kind": "public_cloud_pricing_catalogue",
+  "generatedAt": "2026-05-22T15:34:28+00:00",
+  "currency": "USD",
+  "sourcePolicy": "official_public_apis_docs",
+  "regions": {
+    "aws": "eu-central-1",
+    "gcp": "europe-west3",
+    "azure": "germanywestcentral",
+    "cloudflare": "global"
+  },
+  "items": [
+    {
+      "provider": "aws",
+      "service": "EC2",
+      "sku": "t3.micro",
+      "description": "$0.012 per On Demand Linux t3.micro Instance Hour",
+      "region": "eu-central-1",
+      "unit": "hour",
+      "unitPriceUsd": 0.012,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "9PBREHF5JRKB6RBE",
+        "operation": "RunInstances"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "EC2",
+      "sku": "t3.small",
+      "description": "$0.024 per On Demand Linux t3.small Instance Hour",
+      "region": "eu-central-1",
+      "unit": "hour",
+      "unitPriceUsd": 0.024,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "XGAATXHUHNWXTMMR",
+        "operation": "RunInstances"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "EC2",
+      "sku": "t3.medium",
+      "description": "$0.048 per On Demand Linux t3.medium Instance Hour",
+      "region": "eu-central-1",
+      "unit": "hour",
+      "unitPriceUsd": 0.048,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "RP7JF6K2NBW9Y4SJ",
+        "operation": "RunInstances"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "ECS Fargate",
+      "sku": "fargate-vcpu-hour",
+      "description": "AWS Fargate - Windows - vCPU  - EU (Frankfurt)",
+      "region": "eu-central-1",
+      "unit": "vcpu-hour",
+      "unitPriceUsd": 0.053544,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "G76WJG54MRSTWQ5R"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "ECS Fargate",
+      "sku": "fargate-memory-gb-hour",
+      "description": "AWS Fargate - ARM - Memory - EU (Frankfurt)",
+      "region": "eu-central-1",
+      "unit": "gb-hour",
+      "unitPriceUsd": 0.00409,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "N789HAYSJQFYU9GM"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "CloudWatch Logs",
+      "sku": "logs-ingest-gb",
+      "description": "$0.315 per GB custom log data ingested in Infrequent Access log class -EU (Frankfurt) ",
+      "region": "eu-central-1",
+      "unit": "GB",
+      "unitPriceUsd": 0.315,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudWatch/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "V83ZMXGTQFZA3HP2"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "CloudWatch Logs",
+      "sku": "logs-storage-gb-month",
+      "description": "$0.0324 per GB-mo of log storage - EU (Frankfurt)",
+      "region": "eu-central-1",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0324,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudWatch/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "4V9YKJHUP3C55Q2R"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-storage-gb-month",
+      "description": "$0.0245 per GB - first 50 TB / month of storage used",
+      "region": "eu-central-1",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0245,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "NRYRNCXF5TWHB476",
+        "sourceUnit": "GB-Mo"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-class-a-request",
+      "description": "$0.0054 per 1,000 PUT, COPY, POST, or LIST requests",
+      "region": "eu-central-1",
+      "unit": "request",
+      "unitPriceUsd": 5.4e-06,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "F5832W93RMW27RD7",
+        "sourceUnit": "Requests"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "S3",
+      "sku": "standard-class-b-request",
+      "description": "$0.03 per 1,000 GetAGLocation requests for S3 Access Grants",
+      "region": "eu-central-1",
+      "unit": "request",
+      "unitPriceUsd": 3e-05,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "VCWG3827EUF9ZA4E",
+        "sourceUnit": "Requests"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "ALB",
+      "sku": "alb-hour",
+      "description": "$0.027 per Application LoadBalancer-hour (or partial hour)",
+      "region": "eu-central-1",
+      "unit": "hour",
+      "unitPriceUsd": 0.027,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSELB/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "UZQQFKE5Z4MCF9D5"
+      }
+    },
+    {
+      "provider": "aws",
+      "service": "ALB",
+      "sku": "alb-lcu-hour",
+      "description": "$0.008 per reserved Application load balancer capacity unit-hour",
+      "region": "eu-central-1",
+      "unit": "lcu-hour",
+      "unitPriceUsd": 0.008,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSELB/current/eu-central-1/index.json",
+      "sourceType": "aws_price_list_bulk_api",
+      "metadata": {
+        "awsSku": "ZRJ53ANPRGYAKQGC"
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Compute Engine",
+      "sku": "e2-micro",
+      "description": "e2-micro Linux on-demand estimate from E2 core and RAM SKUs",
+      "region": "europe-west3",
+      "unit": "hour",
+      "unitPriceUsd": 0.00022239325,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "coreSkuId": "B6C7-1DF0-063B",
+        "memorySkuId": "552E-56FD-B16B",
+        "vcpu": 0.25,
+        "memoryGb": 1
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Compute Engine",
+      "sku": "e2-small",
+      "description": "e2-small Linux on-demand estimate from E2 core and RAM SKUs",
+      "region": "europe-west3",
+      "unit": "hour",
+      "unitPriceUsd": 0.0004447865,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "coreSkuId": "B6C7-1DF0-063B",
+        "memorySkuId": "552E-56FD-B16B",
+        "vcpu": 0.5,
+        "memoryGb": 2
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Compute Engine",
+      "sku": "e2-medium",
+      "description": "e2-medium Linux on-demand estimate from E2 core and RAM SKUs",
+      "region": "europe-west3",
+      "unit": "hour",
+      "unitPriceUsd": 0.000889573,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "coreSkuId": "B6C7-1DF0-063B",
+        "memorySkuId": "552E-56FD-B16B",
+        "vcpu": 1,
+        "memoryGb": 4
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Logging",
+      "sku": "logs-storage-gb-month",
+      "description": "Log Storage cost",
+      "region": "europe-west3",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "skuId": "143F-A1B0-E0BE",
+        "sourceUnit": "GiBy"
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "standard-storage-gb-month",
+      "description": "Storage Intelligence Standard Early Termination Fee",
+      "region": "europe-west3",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "skuId": "2279-6BDB-AB4F",
+        "sourceUnit": "s"
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "class-a-operation",
+      "description": "Multi-Region Durable Reduced Availability Class A Operations",
+      "region": "europe-west3",
+      "unit": "operation",
+      "unitPriceUsd": 2e-05,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "skuId": "007A-40B7-63BC",
+        "sourceUnit": "count"
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Storage",
+      "sku": "class-b-operation",
+      "description": "Dual-Region Autoclass Standard Class B Operations",
+      "region": "europe-west3",
+      "unit": "operation",
+      "unitPriceUsd": 4e-07,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloudbilling.googleapis.com/v1/services/*/skus",
+      "sourceType": "gcp_cloud_billing_catalog_api",
+      "metadata": {
+        "skuId": "0373-EC21-DC06",
+        "sourceUnit": "count"
+      }
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Run",
+      "sku": "vcpu-second",
+      "description": "Cloud Run services CPU price from official docs",
+      "region": "europe-west3",
+      "unit": "vcpu-second",
+      "unitPriceUsd": 1.8e-05,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloud.google.com/run/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Run",
+      "sku": "memory-gb-second",
+      "description": "Cloud Run services memory price from official docs",
+      "region": "europe-west3",
+      "unit": "gb-second",
+      "unitPriceUsd": 2e-06,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloud.google.com/run/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Logging",
+      "sku": "logs-ingest-gb",
+      "description": "Cloud Logging storage and ingestion price from official docs; includes default 30-day log bucket storage.",
+      "region": "europe-west3",
+      "unit": "GB",
+      "unitPriceUsd": 0.5,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloud.google.com/logging/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "gcp",
+      "service": "Cloud Load Balancing",
+      "sku": "forwarding-rule-hour",
+      "description": "Cloud Load Balancing first five forwarding rules price from official docs",
+      "region": "europe-west3",
+      "unit": "hour",
+      "unitPriceUsd": 0.025,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://cloud.google.com/load-balancing/pricing",
+      "sourceType": "gcp_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "azure",
+      "service": "Virtual Machines",
+      "sku": "Standard_B1s",
+      "description": "Virtual Machines BS Series",
+      "region": "germanywestcentral",
+      "unit": "hour",
+      "unitPriceUsd": 0.012,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "aefe2412-a457-472a-ac3c-4f1809c60fac",
+        "armSkuName": "Standard_B1s",
+        "unitOfMeasure": "1 Hour"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Virtual Machines",
+      "sku": "Standard_B2s",
+      "description": "Bsv2 Series Cloud Services",
+      "region": "germanywestcentral",
+      "unit": "hour",
+      "unitPriceUsd": 0.105,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "2271e975-23f9-5f68-b377-6550c5403bf4",
+        "armSkuName": "Standard_B2s_v2",
+        "unitOfMeasure": "1 Hour"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Virtual Machines",
+      "sku": "Standard_D2s_v5",
+      "description": "Virtual Machines Dsv5 Series",
+      "region": "germanywestcentral",
+      "unit": "hour",
+      "unitPriceUsd": 0.115,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "7818166d-015a-5f9f-be03-2ff5ce25ed4d",
+        "armSkuName": "Standard_D2s_v5",
+        "unitOfMeasure": "1 Hour"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "AKS",
+      "sku": "node-Standard_D2s_v5",
+      "description": "AKS node pool VM cost using Standard_D2s_v5",
+      "region": "germanywestcentral",
+      "unit": "hour",
+      "unitPriceUsd": 0.115,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "derivedFrom": "Standard_D2s_v5"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Log Analytics Workspace",
+      "sku": "logs-ingest-gb",
+      "description": "Log Analytics",
+      "region": "germanywestcentral",
+      "unit": "GB",
+      "unitPriceUsd": 2.99,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "635973d5-2aea-41ea-99c6-418c3c70ae64",
+        "meterName": "Analytics Logs Data Ingestion",
+        "unitOfMeasure": "1 GB"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Log Analytics Workspace",
+      "sku": "logs-retention-gb-month",
+      "description": "Log Analytics",
+      "region": "germanywestcentral",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.13,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "8361c54f-2561-4354-89fb-cb3ea0a43a90",
+        "meterName": "Analytics Logs Data Retention",
+        "unitOfMeasure": "1 GB/Month"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Blob Storage",
+      "sku": "hot-lrs-storage-gb-month",
+      "description": "Files v2",
+      "region": "germanywestcentral",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.0271,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "287a06ef-e709-59d0-8516-bb2fbca70a45",
+        "meterName": "Hot LRS Data Stored",
+        "unitOfMeasure": "1 GB/Month"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Application Gateway",
+      "sku": "standard-v2-hour",
+      "description": "Application Gateway Standard v2",
+      "region": "germanywestcentral",
+      "unit": "hour",
+      "unitPriceUsd": 0.2,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "2ca52b9a-f4f7-59d1-95dd-a9ac760c3ae0",
+        "meterName": "Standard Fixed Cost",
+        "unitOfMeasure": "1/Hour"
+      }
+    },
+    {
+      "provider": "azure",
+      "service": "Application Gateway",
+      "sku": "capacity-unit-hour",
+      "description": "Application Gateway Standard v2",
+      "region": "germanywestcentral",
+      "unit": "capacity-unit-hour",
+      "unitPriceUsd": 0.008,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices",
+      "sourceType": "azure_retail_prices_api",
+      "metadata": {
+        "meterId": "c4878252-9865-5870-b046-7183fe8d0f27",
+        "meterName": "Standard Capacity Units",
+        "unitOfMeasure": "1/Hour"
+      }
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "paid-plan-minimum",
+      "description": "Workers Paid plan monthly minimum",
+      "region": "global",
+      "unit": "month",
+      "unitPriceUsd": 5.0,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "request-million",
+      "description": "Workers Standard request overage",
+      "region": "global",
+      "unit": "million-requests",
+      "unitPriceUsd": 0.3,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Workers",
+      "sku": "cpu-million-ms",
+      "description": "Workers Standard CPU overage",
+      "region": "global",
+      "unit": "million-cpu-ms",
+      "unitPriceUsd": 0.02,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Logpush",
+      "sku": "workers-logpush-million",
+      "description": "Workers Trace Events Logpush overage",
+      "region": "global",
+      "unit": "million-requests",
+      "unitPriceUsd": 0.05,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "standard-storage-gb-month",
+      "description": "R2 Standard storage",
+      "region": "global",
+      "unit": "GB-month",
+      "unitPriceUsd": 0.015,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "class-a-million-operations",
+      "description": "R2 Class A operations",
+      "region": "global",
+      "unit": "million-operations",
+      "unitPriceUsd": 4.5,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "R2",
+      "sku": "class-b-million-operations",
+      "description": "R2 Class B operations",
+      "region": "global",
+      "unit": "million-operations",
+      "unitPriceUsd": 0.36,
+      "currency": "USD",
+      "status": "priced",
+      "sourceUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {}
+    },
+    {
+      "provider": "cloudflare",
+      "service": "Load Balancing",
+      "sku": "included-or-plan-dependent",
+      "description": "Cloudflare load balancing is modeled as included or plan-dependent for this budget view.",
+      "region": "global",
+      "unit": "included",
+      "unitPriceUsd": 0.0,
+      "currency": "USD",
+      "status": "included_or_plan_dependent",
+      "sourceUrl": "https://www.cloudflare.com/plans/",
+      "sourceType": "cloudflare_official_pricing_docs",
+      "metadata": {
+        "note": "No regional unit price is applied by default."
+      }
+    }
+  ],
+  "warnings": [
+    "GCP service Cloud Load Balancing not found in public billing catalogue.",
+    "GCP Cloud Run vcpu-second price not found for europe-west3.",
+    "GCP Cloud Run memory-gb-second price not found for europe-west3.",
+    "GCP Cloud Run request price not found for europe-west3.",
+    "GCP Cloud Logging logs-ingest-gb price not found for europe-west3.",
+    "GCP Compute Engine E2 docs prices were not machine-readable; use GCP_PUBLIC_PRICING_API_KEY for official SKU rows.",
+    "GCP Cloud Run request price was not machine-readable from official docs.",
+    "GCP Cloud Load Balancing regional data-processing price was not machine-readable from official docs."
+  ],
+  "sourceNotes": [
+    "AWS prices come from the public AWS Price List Bulk API files.",
+    "GCP prices come from the public Cloud Billing Catalog API where available.",
+    "Azure prices come from the unauthenticated Azure Retail Prices API.",
+    "Cloudflare prices come from official Cloudflare pricing documentation."
+  ]
+}
