@@ -2,11 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import {
 	Activity,
-	AlertTriangle,
 	ArrowLeft,
 	ArrowUpRight,
 	BarChart3,
-	Cloud,
 	DollarSign,
 	TrendingDown,
 	TrendingUp,
@@ -232,28 +230,6 @@ function Dashboard() {
 						<ProjectedCostsChart data={dashboardData.projectedCosts} />
 					</div>
 				</div>
-
-				{/* Insights */}
-				<div className="mt-6 grid gap-4 lg:grid-cols-3">
-					<InsightCard
-						icon={AlertTriangle}
-						title="Cost Trend Alert"
-						description="Cloud costs increased 14% this month. Consider optimizing AWS EC2 instances."
-						type="warning"
-					/>
-					<InsightCard
-						icon={TrendingUp}
-						title="Revenue Growth"
-						description="Revenue up 18% month-over-month. Subscription renewals are strong."
-						type="success"
-					/>
-					<InsightCard
-						icon={Cloud}
-						title="Provider Mix"
-						description="AWS represents 53% of cloud spend. Diversification opportunity exists."
-						type="info"
-					/>
-				</div>
 			</div>
 		</div>
 	);
@@ -354,51 +330,6 @@ function ProjectedCostsChart({
 					);
 				})}
 			</div>
-		</div>
-	);
-}
-
-function InsightCard({
-	icon: Icon,
-	title,
-	description,
-	type,
-}: {
-	icon: React.ElementType;
-	title: string;
-	description: string;
-	type: "success" | "warning" | "info";
-}) {
-	const config = {
-		success: {
-			bg: "bg-emerald-500/10",
-			border: "border-emerald-500/20",
-			text: "text-emerald-700 dark:text-emerald-300",
-			icon: "text-emerald-600",
-		},
-		warning: {
-			bg: "bg-yellow-500/10",
-			border: "border-yellow-500/20",
-			text: "text-yellow-700 dark:text-yellow-300",
-			icon: "text-yellow-600",
-		},
-		info: {
-			bg: "bg-blue-500/10",
-			border: "border-blue-500/20",
-			text: "text-blue-700 dark:text-blue-300",
-			icon: "text-blue-600",
-		},
-	};
-
-	const style = config[type];
-
-	return (
-		<div className={`${style.bg} border ${style.border} rounded-xl p-4`}>
-			<div className="mb-2 flex items-center gap-2">
-				<Icon className={style.icon} size={18} />
-				<h3 className={`text-sm font-extrabold ${style.text}`}>{title}</h3>
-			</div>
-			<p className="text-sm text-[var(--sea-ink-soft)]">{description}</p>
 		</div>
 	);
 }
