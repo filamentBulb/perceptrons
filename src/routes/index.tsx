@@ -1190,6 +1190,7 @@ function ConnectionModal({
 	onClose: () => void;
 }) {
 	const Icon = integration.icon;
+	const [syncReady, setSyncReady] = useState(step !== 2);
 	const steps = [
 		{
 			title: `Connect ${integration.name}`,
@@ -1208,6 +1209,20 @@ function ConnectionModal({
 		},
 	];
 	const current = steps[step];
+	const isFinalSyncStep = step === 2;
+	const isButtonDisabled = isFinalSyncStep && !syncReady;
+
+	useEffect(() => {
+		if (!isFinalSyncStep) {
+			setSyncReady(true);
+			return;
+		}
+
+		setSyncReady(false);
+		const timeoutId = window.setTimeout(() => setSyncReady(true), 1000);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [isFinalSyncStep]);
 
 	return (
 		<div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 px-4 py-8 backdrop-blur-sm">
@@ -1218,7 +1233,7 @@ function ConnectionModal({
 							<Icon size={21} />
 						</div>
 						<div>
-							<p className="island-kicker mb-1">Fake OAuth flow</p>
+							<p className="island-kicker mb-1">Secure authorization</p>
 							<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
 								{current.title}
 							</h2>
@@ -1269,56 +1284,81 @@ function ConnectionModal({
 							</ul>
 						</div>
 						<button
-							className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white"
+							className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white disabled:cursor-wait disabled:bg-slate-300 disabled:text-slate-700"
+							disabled={isButtonDisabled}
 							onClick={onAdvance}
 							type="button"
 						>
-							{step === 2 ? (
+							{isButtonDisabled ? (
 								<Loader2 className="animate-spin" size={16} />
 							) : (
 								<ExternalLink size={16} />
 							)}
-							{current.action}
+							{isButtonDisabled ? "Syncing business data..." : current.action}
 						</button>
 					</div>
 
 					<div className="rounded-xl border border-[var(--line)] bg-slate-950 p-4 text-white">
-						<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
-							Preview data to import
-						</p>
-						<h3 className="mb-4 mt-2 text-lg font-extrabold">
-							{mock.headline}
-						</h3>
-						<div className="grid gap-2 sm:grid-cols-3">
-							{mock.monthlySpend ? (
-								<DarkStat label="Monthly spend" value={mock.monthlySpend} />
-							) : null}
-							{mock.monthlyIn ? (
-								<DarkStat label="Money in" value={mock.monthlyIn} />
-							) : null}
-							{mock.monthlyOut ? (
-								<DarkStat label="Money out" value={mock.monthlyOut} />
-							) : null}
-							{mock.net ? <DarkStat label="Net cash" value={mock.net} /> : null}
-						</div>
-						<div className="mt-4 space-y-2">
-							{mock.services.slice(0, 4).map((service) => (
-								<div
-									className="rounded-lg border border-white/10 bg-white/5 p-3"
-									key={service.name}
-								>
-									<div className="flex items-center justify-between gap-3">
-										<span className="text-sm font-bold">{service.name}</span>
-										<span className="text-sm font-extrabold text-emerald-300">
-											{service.count}
-										</span>
-									</div>
-									<p className="m-0 mt-1 text-xs text-slate-300">
-										{service.spend} · {service.detail}
+						{isFinalSyncStep ? (
+							<>
+								<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+									Preview data to import
+								</p>
+								<h3 className="mb-4 mt-2 text-lg font-extrabold">
+									{mock.headline}
+								</h3>
+								<div className="grid gap-2 sm:grid-cols-3">
+									{mock.monthlySpend ? (
+										<DarkStat label="Monthly spend" value={mock.monthlySpend} />
+									) : null}
+									{mock.monthlyIn ? (
+										<DarkStat label="Money in" value={mock.monthlyIn} />
+									) : null}
+									{mock.monthlyOut ? (
+										<DarkStat label="Money out" value={mock.monthlyOut} />
+									) : null}
+									{mock.net ? (
+										<DarkStat label="Net cash" value={mock.net} />
+									) : null}
+								</div>
+								<div className="mt-4 space-y-2">
+									{mock.services.slice(0, 4).map((service) => (
+										<div
+											className="rounded-lg border border-white/10 bg-white/5 p-3"
+											key={service.name}
+										>
+											<div className="flex items-center justify-between gap-3">
+												<span className="text-sm font-bold">
+													{service.name}
+												</span>
+												<span className="text-sm font-extrabold text-emerald-300">
+													{service.count}
+												</span>
+											</div>
+											<p className="m-0 mt-1 text-xs text-slate-300">
+												{service.spend} · {service.detail}
+											</p>
+										</div>
+									))}
+								</div>
+							</>
+						) : (
+							<div className="grid min-h-[280px] place-items-center rounded-lg border border-white/10 bg-white/5 p-5 text-center">
+								<div>
+									<ShieldAlert
+										className="mx-auto mb-3 text-emerald-300"
+										size={28}
+									/>
+									<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+										Preview locked
+									</p>
+									<p className="m-0 mt-2 text-sm leading-6 text-slate-300">
+										Imported provider data is shown only after authorization is
+										approved and the final sync step starts.
 									</p>
 								</div>
-							))}
-						</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

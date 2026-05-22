@@ -530,36 +530,58 @@ function ConnectionModal({
 					</div>
 
 					<div className="rounded-xl border border-[var(--line)] bg-slate-950 p-4 text-white">
-						<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
-							Preview data
-						</p>
-						<h3 className="mb-4 mt-2 text-lg font-extrabold">
-							{integration.summary}
-						</h3>
-						<div className="mb-4 grid gap-2 sm:grid-cols-3">
-							{integration.stats.map(([label, value]) => (
-								<div className="rounded-lg bg-white/10 p-3" key={label}>
-									<p className="m-0 text-xs text-slate-300">{label}</p>
-									<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
+						{isFinalSyncStep ? (
+							<>
+								<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+									Preview data
+								</p>
+								<h3 className="mb-4 mt-2 text-lg font-extrabold">
+									{integration.summary}
+								</h3>
+								<div className="mb-4 grid gap-2 sm:grid-cols-3">
+									{integration.stats.map(([label, value]) => (
+										<div className="rounded-lg bg-white/10 p-3" key={label}>
+											<p className="m-0 text-xs text-slate-300">{label}</p>
+											<p className="m-0 mt-1 text-lg font-extrabold">{value}</p>
+										</div>
+									))}
 								</div>
-							))}
-						</div>
-						<div className="space-y-2">
-							{integration.services.slice(0, 4).map(([name, count, spend]) => (
-								<div
-									className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-3"
-									key={name}
-								>
-									<div className="flex items-center gap-2">
-										<Server size={15} />
-										<span className="text-sm font-bold">{name}</span>
-									</div>
-									<span className="text-right text-sm font-extrabold text-emerald-300">
-										{count} · {spend}
-									</span>
+								<div className="space-y-2">
+									{integration.services
+										.slice(0, 4)
+										.map(([name, count, spend]) => (
+											<div
+												className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-3"
+												key={name}
+											>
+												<div className="flex items-center gap-2">
+													<Server size={15} />
+													<span className="text-sm font-bold">{name}</span>
+												</div>
+												<span className="text-right text-sm font-extrabold text-emerald-300">
+													{count} · {spend}
+												</span>
+											</div>
+										))}
 								</div>
-							))}
-						</div>
+							</>
+						) : (
+							<div className="grid min-h-[280px] place-items-center rounded-lg border border-white/10 bg-white/5 p-5 text-center">
+								<div>
+									<ShieldCheck
+										className="mx-auto mb-3 text-emerald-300"
+										size={28}
+									/>
+									<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+										Preview locked
+									</p>
+									<p className="m-0 mt-2 text-sm leading-6 text-slate-300">
+										Imported provider data is shown only after authorization is
+										approved and the final sync step starts.
+									</p>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
