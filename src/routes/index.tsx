@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import {
 	Activity,
@@ -22,7 +22,7 @@ import {
 	X,
 	Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	cloudPricingDatasetSummary,
 	cloudPricingInputs,
@@ -44,7 +44,12 @@ import type {
 	CloudScenario,
 	ProviderMock,
 } from "#/lib/provider-types";
-import { connectRunwaySource, runwayStore } from "../lib/runway-store";
+import {
+	connectRunwaySource,
+	disconnectRunwaySource,
+	hasRequiredForecastSources,
+	runwayStore,
+} from "../lib/runway-store";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -438,11 +443,13 @@ const fallbackScenario: CloudScenario = {
 };
 
 function App() {
+	const navigate = useNavigate();
 	const connected = useStore(runwayStore, (state) => state.connectedSourceIds);
+	const [hasMounted, setHasMounted] = useState(false);
 	const [pendingIntegration, setPendingIntegration] =
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
-	const [dashboardUnlocked, setDashboardUnlocked] = useState(true);
+	const [dashboardUnlocked] = useState(true);
 	const [activeScenarioId, setActiveScenarioId] = useState(
 		scenarios[0]?.id ?? "current-trend",
 	);
@@ -462,12 +469,33 @@ function App() {
 		),
 	);
 	const chartData = activeScenario.chart;
+
+	const canViewForecasts = hasRequiredForecastSources(connected);
 	const connectedProviders = integrations.filter((integration) =>
 		connected.includes(integration.id),
 	);
 
+	useEffect(() => {
+		setHasMounted(true);
+	}, []);
+
+	useEffect(() => {
+		if (!hasMounted || canViewForecasts) return;
+
+		navigate({ to: "/connect", replace: true });
+	}, [canViewForecasts, hasMounted, navigate]);
+
 	const openConnection = (integration: Integration) => {
-		if (connected.includes(integration.id)) return;
+		if (connected.includes(integration.id)) {
+			// Already connected, show option to disconnect or view dashboard
+			const shouldDisconnect = window.confirm(
+				`${integration.name} is already connected. Do you want to disconnect it?`
+			);
+			if (shouldDisconnect) {
+				disconnectRunwaySource(integration.id);
+			}
+			return;
+		}
 		setPendingIntegration(integration);
 		setConnectionStep(0);
 	};
@@ -486,14 +514,21 @@ function App() {
 	};
 
 	const continueToDashboard = () => {
-		setDashboardUnlocked(true);
-		window.setTimeout(() => {
-			document.getElementById("money-flow")?.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
-		}, 50);
+		navigate({ to: "/dashboard" });
 	};
+
+	if (!hasMounted || !canViewForecasts) {
+		return (
+			<main className="page-wrap px-4 pb-8 pt-8">
+				<section className="island-shell rounded-2xl p-6">
+					<p className="island-kicker mb-2">Preparing live forecasts</p>
+					<h1 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
+						Connect a cloud provider and bank source to continue.
+					</h1>
+				</section>
+			</main>
+		);
+	}
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
@@ -509,7 +544,7 @@ function App() {
 					</p>
 					<div className="flex flex-wrap gap-3">
 						<a
-							href="#ai-cfo"
+							href="#connect"
 							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
 						>
 							Review cloud scenarios
@@ -541,17 +576,12 @@ function App() {
 				</div>
 			</section>
 
-			<section id="connect" className="hidden">
-				<div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-					<div>
-						<p className="island-kicker mb-2">Step 1</p>
-						<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-							Connect your startup stack
-						</h2>
-					</div>
-					<div className="min-h-6 text-sm font-bold text-[var(--sea-ink-soft)]">
-						{connected.length}/{integrations.length} sources connected
-					</div>
+			<section id="connect" className="mt-10">
+				<div className="mb-4">
+					<p className="island-kicker mb-2">Connect Providers</p>
+					<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
+						Your startup stack
+					</h2>
 				</div>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{integrations.map((integration) => {
@@ -613,12 +643,11 @@ function App() {
 									</div>
 								) : null}
 								<button
-									className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5 disabled:cursor-default disabled:bg-emerald-500/10 disabled:text-emerald-700 disabled:hover:translate-y-0 dark:disabled:text-emerald-200"
-									disabled={isConnected}
+									className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5"
 									onClick={() => openConnection(integration)}
 									type="button"
 								>
-									{isConnected ? "Connected" : "Connect"}
+									{isConnected ? "View Dashboard" : "Connect"}
 								</button>
 							</article>
 						);
@@ -627,9 +656,11 @@ function App() {
 				<div className="mt-5 flex flex-col items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 sm:flex-row sm:items-center">
 					<div>
 						<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-							{connected.length > 0
-								? "Connections are ready for analysis."
-								: "Connect at least one source to generate the financial dataset."}
+							{canViewForecasts
+								? "You're ready to view your live forecast!"
+								: connected.length > 0
+									? "Connect at least one cloud provider AND one banking/revenue source."
+									: "Connect at least one cloud provider (AWS, GCP, Azure, Cloudflare) and one banking source (Stripe or Open Banking)."}
 						</p>
 						<p className="m-0 mt-1 text-sm text-[var(--sea-ink-soft)]">
 							The next screen uses cloud billing data for provider budgets,
@@ -638,7 +669,7 @@ function App() {
 					</div>
 					<button
 						className="inline-flex items-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
-						disabled={connected.length === 0}
+						disabled={!canViewForecasts}
 						onClick={continueToDashboard}
 						type="button"
 					>
@@ -1091,6 +1122,7 @@ function ConnectionModal({
 	onClose: () => void;
 }) {
 	const Icon = integration.icon;
+	const [syncReady, setSyncReady] = useState(step !== 2);
 	const steps = [
 		{
 			title: `Connect ${integration.name}`,
@@ -1109,6 +1141,20 @@ function ConnectionModal({
 		},
 	];
 	const current = steps[step];
+	const isFinalSyncStep = step === 2;
+	const isButtonDisabled = isFinalSyncStep && !syncReady;
+
+	useEffect(() => {
+		if (!isFinalSyncStep) {
+			setSyncReady(true);
+			return;
+		}
+
+		setSyncReady(false);
+		const timeoutId = window.setTimeout(() => setSyncReady(true), 1000);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [isFinalSyncStep]);
 
 	return (
 		<div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 px-4 py-8 backdrop-blur-sm">
@@ -1170,56 +1216,81 @@ function ConnectionModal({
 							</ul>
 						</div>
 						<button
-							className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white"
+							className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white disabled:cursor-wait disabled:bg-slate-300 disabled:text-slate-700"
+							disabled={isButtonDisabled}
 							onClick={onAdvance}
 							type="button"
 						>
-							{step === 2 ? (
+							{isButtonDisabled ? (
 								<Loader2 className="animate-spin" size={16} />
 							) : (
 								<ExternalLink size={16} />
 							)}
-							{current.action}
+							{isButtonDisabled ? "Syncing business data..." : current.action}
 						</button>
 					</div>
 
 					<div className="rounded-xl border border-[var(--line)] bg-slate-950 p-4 text-white">
-						<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
-							Preview data to import
-						</p>
-						<h3 className="mb-4 mt-2 text-lg font-extrabold">
-							{mock.headline}
-						</h3>
-						<div className="grid gap-2 sm:grid-cols-3">
-							{mock.monthlySpend ? (
-								<DarkStat label="Monthly spend" value={mock.monthlySpend} />
-							) : null}
-							{mock.monthlyIn ? (
-								<DarkStat label="Money in" value={mock.monthlyIn} />
-							) : null}
-							{mock.monthlyOut ? (
-								<DarkStat label="Money out" value={mock.monthlyOut} />
-							) : null}
-							{mock.net ? <DarkStat label="Net cash" value={mock.net} /> : null}
-						</div>
-						<div className="mt-4 space-y-2">
-							{mock.services.slice(0, 4).map((service) => (
-								<div
-									className="rounded-lg border border-white/10 bg-white/5 p-3"
-									key={service.name}
-								>
-									<div className="flex items-center justify-between gap-3">
-										<span className="text-sm font-bold">{service.name}</span>
-										<span className="text-sm font-extrabold text-emerald-300">
-											{service.count}
-										</span>
-									</div>
-									<p className="m-0 mt-1 text-xs text-slate-300">
-										{service.spend} · {service.detail}
+						{isFinalSyncStep ? (
+							<>
+								<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+									Preview data to import
+								</p>
+								<h3 className="mb-4 mt-2 text-lg font-extrabold">
+									{mock.headline}
+								</h3>
+								<div className="grid gap-2 sm:grid-cols-3">
+									{mock.monthlySpend ? (
+										<DarkStat label="Monthly spend" value={mock.monthlySpend} />
+									) : null}
+									{mock.monthlyIn ? (
+										<DarkStat label="Money in" value={mock.monthlyIn} />
+									) : null}
+									{mock.monthlyOut ? (
+										<DarkStat label="Money out" value={mock.monthlyOut} />
+									) : null}
+									{mock.net ? (
+										<DarkStat label="Net cash" value={mock.net} />
+									) : null}
+								</div>
+								<div className="mt-4 space-y-2">
+									{mock.services.slice(0, 4).map((service) => (
+										<div
+											className="rounded-lg border border-white/10 bg-white/5 p-3"
+											key={service.name}
+										>
+											<div className="flex items-center justify-between gap-3">
+												<span className="text-sm font-bold">
+													{service.name}
+												</span>
+												<span className="text-sm font-extrabold text-emerald-300">
+													{service.count}
+												</span>
+											</div>
+											<p className="m-0 mt-1 text-xs text-slate-300">
+												{service.spend} · {service.detail}
+											</p>
+										</div>
+									))}
+								</div>
+							</>
+						) : (
+							<div className="grid min-h-[280px] place-items-center rounded-lg border border-white/10 bg-white/5 p-5 text-center">
+								<div>
+									<ShieldAlert
+										className="mx-auto mb-3 text-emerald-300"
+										size={28}
+									/>
+									<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+										Preview locked
+									</p>
+									<p className="m-0 mt-2 text-sm leading-6 text-slate-300">
+										Imported provider data is shown only after authorization is
+										approved and the final sync step starts.
 									</p>
 								</div>
-							))}
-						</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
