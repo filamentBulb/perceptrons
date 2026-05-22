@@ -469,12 +469,6 @@ function App() {
 		[activeScenarioId],
 	);
 
-	const hasConnectedCloud = connected.some((sourceId) =>
-		integrations.some(
-			(integration) =>
-				integration.id === sourceId && integration.category === "Cloud",
-		),
-	);
 	const chartData = activeScenario.chart;
 	const connectedProviders = integrations.filter((integration) =>
 		connected.includes(integration.id),
@@ -537,47 +531,18 @@ function App() {
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
-			<section className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-				<div className="rise-in">
-					<p className="island-kicker mb-3">Cloud budget forecaster</p>
-					<h1 className="display-title mb-5 max-w-4xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
-						Forecast whether cloud growth breaks your infrastructure budget.
-					</h1>
-					<p className="mb-7 max-w-2xl text-base leading-7 text-[var(--sea-ink-soft)] sm:text-lg">
-						Use official public retail prices, editable usage quantities, and
-						cloud-only what-if scenarios without connecting provider accounts.
-					</p>
-					<div className="flex flex-wrap gap-3">
-						<a
-							href="#connect"
-							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
-						>
-							Review cloud scenarios
-							<ArrowRight size={16} />
-						</a>
-					</div>
-				</div>
-
-				<div className="island-shell rise-in rounded-2xl p-4 sm:p-5">
-					<div className="mb-4 flex items-center justify-between gap-3">
-						<div>
-							<p className="island-kicker mb-1">Cloud forecast</p>
-							<h2 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-								Six-month budget model
-							</h2>
-						</div>
-						<div className="rounded-lg border border-amber-500/30 bg-amber-100/70 px-3 py-2 text-xs font-extrabold text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-							{hasConnectedCloud
-								? activeScenario.risk
-								: cloudForecast.summary.risk}{" "}
-							RISK
-						</div>
-					</div>
-					<MoneyFlowChart
-						data={chartData}
-						danger={activeScenario.id !== scenarios[0]?.id}
-						scenarioId={activeScenario.id}
-					/>
+			<section className="rise-in">
+				<h1 className="display-title mb-5 max-w-4xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
+					Forecast your cloud growth and runway
+				</h1>
+				<div className="flex flex-wrap gap-3">
+					<a
+						href="#connect"
+						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
+					>
+						Review cloud scenarios
+						<ArrowRight size={16} />
+					</a>
 				</div>
 			</section>
 
