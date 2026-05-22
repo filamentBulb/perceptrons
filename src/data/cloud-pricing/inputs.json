@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "currency": "USD",
+  "applyFreeTier": false,
+  "regions": {
+    "aws": "eu-central-1",
+    "gcp": "europe-west3",
+    "azure": "germanywestcentral",
+    "cloudflare": "global"
+  },
+  "providers": {
+    "aws": {
+      "ec2InstanceTypes": [
+        "t3.micro",
+        "t3.small",
+        "t3.medium"
+      ],
+      "ec2DefaultInstanceType": "t3.medium"
+    },
+    "gcp": {
+      "computeMachineTypes": [
+        "e2-micro",
+        "e2-small",
+        "e2-medium"
+      ],
+      "computeDefaultMachineType": "e2-medium"
+    },
+    "azure": {
+      "vmSkus": [
+        "Standard_B1s",
+        "Standard_B2s",
+        "Standard_D2s_v5"
+      ],
+      "vmDefaultSku": "Standard_D2s_v5",
+      "aksNodeSku": "Standard_D2s_v5"
+    },
+    "cloudflare": {
+      "workersPlan": "paid"
+    }
+  },
+  "usage": {
+    "compute": {
+      "instanceCount": 1,
+      "hoursPerMonth": 730
+    },
+    "ecsFargate": {
+      "taskCount": 1,
+      "vcpu": 0.5,
+      "memoryGb": 1,
+      "hoursPerMonth": 730
+    },
+    "aks": {
+      "nodeCount": 1,
+      "hoursPerMonth": 730
+    },
+    "cloudRun": {
+      "requestsPerMonth": 1000000,
+      "vcpuSecondsPerMonth": 180000,
+      "memoryGbSecondsPerMonth": 360000
+    },
+    "workers": {
+      "requestsPerMonth": 10000000,
+      "cpuMillisecondsPerMonth": 30000000
+    },
+    "logs": {
+      "ingestGbPerMonth": 100,
+      "retentionGbMonth": 100,
+      "logpushRequestsPerMonth": 10000000
+    },
+    "storage": {
+      "storageGbMonth": 100,
+      "classAOperationsPerMonth": 10000,
+      "classBOperationsPerMonth": 100000
+    },
+    "loadBalancer": {
+      "count": 1,
+      "hoursPerMonth": 730,
+      "lcuHoursPerMonth": 730,
+      "dataGbPerMonth": 100
+    }
+  }
+}
