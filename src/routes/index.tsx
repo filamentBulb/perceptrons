@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import {
 	Activity,
@@ -22,8 +22,12 @@ import {
 	X,
 	Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { connectRunwaySource, runwayStore } from "../lib/runway-store";
+import { useEffect, useMemo, useState } from "react";
+import {
+	connectRunwaySource,
+	hasRequiredForecastSources,
+	runwayStore,
+} from "../lib/runway-store";
 
 export const Route = createFileRoute("/")({ component: App });
 
@@ -619,7 +623,9 @@ const moneySinks = [
 ];
 
 function App() {
+	const navigate = useNavigate();
 	const connected = useStore(runwayStore, (state) => state.connectedSourceIds);
+	const [hasMounted, setHasMounted] = useState(false);
 	const [pendingIntegration, setPendingIntegration] =
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
@@ -633,11 +639,22 @@ function App() {
 		[activeScenarioId],
 	);
 
-	const chartData = connected.length >= 2 ? activeScenario.chart : baseChart;
-	const connectedEnough = connected.length >= 2;
+	const canViewForecasts = hasRequiredForecastSources(connected);
+	const chartData = canViewForecasts ? activeScenario.chart : baseChart;
+	const connectedEnough = canViewForecasts;
 	const connectedProviders = integrations.filter((integration) =>
 		connected.includes(integration.id),
 	);
+
+	useEffect(() => {
+		setHasMounted(true);
+	}, []);
+
+	useEffect(() => {
+		if (!hasMounted || canViewForecasts) return;
+
+		navigate({ to: "/connect", replace: true });
+	}, [canViewForecasts, hasMounted, navigate]);
 
 	const openConnection = (integration: Integration) => {
 		if (connected.includes(integration.id)) return;
@@ -667,6 +684,19 @@ function App() {
 			});
 		}, 50);
 	};
+
+	if (!hasMounted || !canViewForecasts) {
+		return (
+			<main className="page-wrap px-4 pb-8 pt-8">
+				<section className="island-shell rounded-2xl p-6">
+					<p className="island-kicker mb-2">Preparing live forecasts</p>
+					<h1 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
+						Connect a cloud provider and bank source to continue.
+					</h1>
+				</section>
+			</main>
+		);
+	}
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
