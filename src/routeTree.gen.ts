@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,11 @@ import { Route as DemoApiAiChatRouteImport } from './routes/demo/api.ai.chat'
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnectRoute = ConnectRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/connect': typeof ConnectRoute
+  '/dashboard': typeof DashboardRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
   '/demo/ai-image': typeof DemoAiImageRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/connect': typeof ConnectRoute
+  '/dashboard': typeof DashboardRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
   '/demo/ai-image': typeof DemoAiImageRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/connect': typeof ConnectRoute
+  '/dashboard': typeof DashboardRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
   '/demo/ai-image': typeof DemoAiImageRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/connect'
+    | '/dashboard'
     | '/mcp'
     | '/demo/ai-chat'
     | '/demo/ai-image'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/connect'
+    | '/dashboard'
     | '/mcp'
     | '/demo/ai-chat'
     | '/demo/ai-image'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/connect'
+    | '/dashboard'
     | '/mcp'
     | '/demo/ai-chat'
     | '/demo/ai-image'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ConnectRoute: typeof ConnectRoute
+  DashboardRoute: typeof DashboardRoute
   McpRoute: typeof McpRoute
   DemoAiChatRoute: typeof DemoAiChatRoute
   DemoAiImageRoute: typeof DemoAiImageRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connect': {
@@ -439,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ConnectRoute: ConnectRoute,
+  DashboardRoute: DashboardRoute,
   McpRoute: McpRoute,
   DemoAiChatRoute: DemoAiChatRoute,
   DemoAiImageRoute: DemoAiImageRoute,

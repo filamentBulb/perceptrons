@@ -6,7 +6,7 @@ type RunwayState = {
 
 const STORAGE_KEY = "runway-ai-cfo-state";
 const CLOUD_SOURCE_IDS = ["aws", "gcp", "azure", "cloudflare"];
-const BANK_SOURCE_IDS = ["banking"];
+const BANK_SOURCE_IDS = ["banking", "stripe"];
 
 function readInitialState(): RunwayState {
 	if (typeof window === "undefined") {
@@ -45,6 +45,17 @@ export function connectRunwaySource(sourceId: string) {
 			connectedSourceIds: [...state.connectedSourceIds, sourceId],
 		};
 	});
+}
+
+export function disconnectRunwaySource(sourceId: string) {
+	runwayStore.setState((state) => ({
+		...state,
+		connectedSourceIds: state.connectedSourceIds.filter(id => id !== sourceId),
+	}));
+}
+
+export function clearAllConnections() {
+	runwayStore.setState(() => ({ connectedSourceIds: [] }));
 }
 
 export function hasRequiredForecastSources(sourceIds: string[]) {

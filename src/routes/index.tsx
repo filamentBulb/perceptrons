@@ -25,6 +25,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import {
 	connectRunwaySource,
+	disconnectRunwaySource,
 	hasRequiredForecastSources,
 	runwayStore,
 } from "../lib/runway-store";
@@ -629,19 +630,8 @@ function App() {
 	const [pendingIntegration, setPendingIntegration] =
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
-	const [dashboardUnlocked, setDashboardUnlocked] = useState(true);
-	const [activeScenarioId, setActiveScenarioId] = useState(scenarios[0].id);
-
-	const activeScenario = useMemo(
-		() =>
-			scenarios.find((scenario) => scenario.id === activeScenarioId) ??
-			scenarios[0],
-		[activeScenarioId],
-	);
 
 	const canViewForecasts = hasRequiredForecastSources(connected);
-	const chartData = canViewForecasts ? activeScenario.chart : baseChart;
-	const connectedEnough = canViewForecasts;
 	const connectedProviders = integrations.filter((integration) =>
 		connected.includes(integration.id),
 	);
@@ -657,7 +647,16 @@ function App() {
 	}, [canViewForecasts, hasMounted, navigate]);
 
 	const openConnection = (integration: Integration) => {
-		if (connected.includes(integration.id)) return;
+		if (connected.includes(integration.id)) {
+			// Already connected, show option to disconnect or view dashboard
+			const shouldDisconnect = window.confirm(
+				`${integration.name} is already connected. Do you want to disconnect it?`
+			);
+			if (shouldDisconnect) {
+				disconnectRunwaySource(integration.id);
+			}
+			return;
+		}
 		setPendingIntegration(integration);
 		setConnectionStep(0);
 	};
@@ -676,13 +675,7 @@ function App() {
 	};
 
 	const continueToDashboard = () => {
-		setDashboardUnlocked(true);
-		window.setTimeout(() => {
-			document.getElementById("money-flow")?.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
-		}, 50);
+		navigate({ to: "/dashboard" });
 	};
 
 	if (!hasMounted || !canViewForecasts) {
@@ -713,10 +706,10 @@ function App() {
 					</p>
 					<div className="flex flex-wrap gap-3">
 						<a
-							href="#ai-cfo"
+							href="#connect"
 							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
 						>
-							Ask AI CFO
+							Connect providers
 							<ArrowRight size={16} />
 						</a>
 					</div>
@@ -731,28 +724,23 @@ function App() {
 							</h2>
 						</div>
 						<div className="rounded-lg border border-amber-500/30 bg-amber-100/70 px-3 py-2 text-xs font-extrabold text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-							{connectedEnough ? activeScenario.risk : "BASELINE"} RISK
+							BASELINE RISK
 						</div>
 					</div>
 					<MoneyFlowChart
-						data={chartData}
-						danger={connectedEnough}
-						scenarioId={connectedEnough ? activeScenario.id : "baseline"}
+						data={baseChart}
+						danger={false}
+						scenarioId="baseline"
 					/>
 				</div>
 			</section>
 
-			<section id="connect" className="hidden">
-				<div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-					<div>
-						<p className="island-kicker mb-2">Step 1</p>
-						<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-							Connect your startup stack
-						</h2>
-					</div>
-					<div className="min-h-6 text-sm font-bold text-[var(--sea-ink-soft)]">
-						{connected.length}/{integrations.length} sources connected
-					</div>
+			<section id="connect" className="mt-10">
+				<div className="mb-4">
+					<p className="island-kicker mb-2">Connect Providers</p>
+					<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
+						Your startup stack
+					</h2>
 				</div>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{integrations.map((integration) => {
@@ -814,12 +802,11 @@ function App() {
 									</div>
 								) : null}
 								<button
-									className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5 disabled:cursor-default disabled:bg-emerald-500/10 disabled:text-emerald-700 disabled:hover:translate-y-0 dark:disabled:text-emerald-200"
-									disabled={isConnected}
+									className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5"
 									onClick={() => openConnection(integration)}
 									type="button"
 								>
-									{isConnected ? "Connected" : "Connect"}
+									{isConnected ? "View Dashboard" : "Connect"}
 								</button>
 							</article>
 						);
@@ -828,22 +815,23 @@ function App() {
 				<div className="mt-5 flex flex-col items-start justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 sm:flex-row sm:items-center">
 					<div>
 						<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-							{connected.length > 0
-								? "Connections are ready for analysis."
-								: "Connect at least one source to generate the financial dataset."}
+							{canViewForecasts
+								? "You're ready to view your live forecast!"
+								: connected.length > 0
+									? "Connect at least one cloud provider AND one banking/revenue source."
+									: "Connect at least one cloud provider (AWS, GCP, Azure, Cloudflare) and one banking source (Stripe or Open Banking)."}
 						</p>
 						<p className="m-0 mt-1 text-sm text-[var(--sea-ink-soft)]">
-							The next screen turns connected cloud, bank, and Stripe data into
-							budget, cash flow, and risk graphs.
+							The dashboard shows monthly expenses, runway, cost projections, and income-to-spend ratio with interactive charts.
 						</p>
 					</div>
 					<button
 						className="inline-flex items-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
-						disabled={connected.length === 0}
+						disabled={!canViewForecasts}
 						onClick={continueToDashboard}
 						type="button"
 					>
-						Continue to financial view
+						Open live forecast
 						<ArrowRight size={16} />
 					</button>
 				</div>
@@ -868,271 +856,6 @@ function App() {
 					</div>
 				</section>
 			) : null}
-
-			<section
-				className={dashboardUnlocked ? "mt-10" : "hidden"}
-				id="money-flow"
-			>
-				<div className="mb-4">
-					<p className="island-kicker mb-2">Step 2</p>
-					<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-						Live money flow
-					</h2>
-				</div>
-				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-					<MetricCard
-						icon={Wallet}
-						label="Bank Balance"
-						value="$410k"
-						note="-4.8% this month"
-					/>
-					<MetricCard
-						icon={Activity}
-						label="Monthly Revenue"
-						value={connectedEnough ? activeScenario.metrics.revenue : "$137k"}
-						note="+18% trend"
-					/>
-					<MetricCard
-						icon={Cloud}
-						label="Infrastructure Cost"
-						value={connectedEnough ? activeScenario.metrics.infraCost : "$66k"}
-						note="+22% trend"
-					/>
-					<MetricCard
-						icon={Banknote}
-						label="Pending Payouts"
-						value={connectedEnough ? activeScenario.metrics.payout : "$31k"}
-						note="5.6 day lag"
-					/>
-					<MetricCard
-						icon={TrendingDown}
-						label="Estimated Runway"
-						value={connectedEnough ? activeScenario.metrics.runway : "7.2 mo"}
-						note="current burn"
-					/>
-				</div>
-
-				<div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
-					<div className="island-shell rounded-2xl p-4 sm:p-5">
-						<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-							<div>
-								<p className="island-kicker mb-1">Cash, revenue, spend</p>
-								<h3 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-									Six-month survival forecast
-								</h3>
-							</div>
-							<div className="flex flex-wrap gap-3 text-xs font-bold text-[var(--sea-ink-soft)]">
-								<Legend color="#2563eb" label="Cash balance" />
-								<Legend color="#16a34a" label="Revenue inflow" />
-								<Legend color="#dc2626" label="Infra spend" />
-							</div>
-						</div>
-						<MoneyFlowChart
-							data={chartData}
-							danger={connectedEnough}
-							scenarioId={connectedEnough ? activeScenario.id : "baseline"}
-						/>
-					</div>
-
-					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-						<FlowList title="Money Sources" rows={moneySources} good />
-						<FlowList title="Money Sinks" rows={moneySinks} />
-					</div>
-				</div>
-			</section>
-
-			<section className={dashboardUnlocked ? "mt-10" : "hidden"}>
-				<div className="mb-4">
-					<p className="island-kicker mb-2">Budget intelligence</p>
-					<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-						Monthly budget and cost drivers
-					</h2>
-				</div>
-				<div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-					<div className="island-shell rounded-2xl p-4 sm:p-5">
-						<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-							<div>
-								<p className="island-kicker mb-1">Budget view</p>
-								<h3 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-									Revenue vs monthly outgoing cash
-								</h3>
-							</div>
-							<div className="flex flex-wrap gap-3 text-xs font-bold text-[var(--sea-ink-soft)]">
-								<Legend color="#16a34a" label="Revenue" />
-								<Legend color="#2563eb" label="Cloud" />
-								<Legend color="#7c3aed" label="Payroll" />
-								<Legend color="#f59e0b" label="Tools" />
-							</div>
-						</div>
-						<BudgetStackedBars data={monthlyBudget} />
-					</div>
-					<div className="grid gap-4">
-						<div className="island-shell rounded-2xl p-4 sm:p-5">
-							<p className="island-kicker mb-1">Cloud and API spend</p>
-							<h3 className="mb-4 text-lg font-extrabold text-[var(--sea-ink)]">
-								Current monthly cost mix
-							</h3>
-							<ServiceSpendBars data={serviceSpend} />
-						</div>
-						<div className="island-shell rounded-2xl p-4 sm:p-5">
-							<p className="island-kicker mb-1">Chat context</p>
-							<h3 className="mb-3 text-lg font-extrabold text-[var(--sea-ink)]">
-								Data ready for AI CFO
-							</h3>
-							<ul className="m-0 space-y-2 p-0">
-								{[
-									"Provider inventories and service counts",
-									"Monthly revenue, payouts, refunds, and fees",
-									"Cloud spend by provider and service",
-									"Budget trend, runway, and scenario forecasts",
-								].map((item) => (
-									<li
-										className="flex gap-2 text-sm leading-6 text-[var(--sea-ink-soft)]"
-										key={item}
-									>
-										<Check
-											className="mt-1 shrink-0 text-emerald-600"
-											size={15}
-										/>
-										{item}
-									</li>
-								))}
-							</ul>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<section
-				id="ai-cfo"
-				className={
-					dashboardUnlocked
-						? "mt-10 grid gap-4 lg:grid-cols-[0.86fr_1.14fr]"
-						: "hidden"
-				}
-			>
-				<div className="island-shell rounded-2xl p-4 sm:p-5">
-					<p className="island-kicker mb-2">Step 3</p>
-					<h2 className="mb-4 text-2xl font-extrabold text-[var(--sea-ink)]">
-						AI CFO chat
-					</h2>
-					<div className="space-y-3">
-						{scenarios.map((scenario) => (
-							<button
-								className={`w-full rounded-lg border px-4 py-3 text-left text-sm font-bold leading-6 transition ${
-									scenario.id === activeScenario.id
-										? "border-[rgba(50,143,151,0.45)] bg-[rgba(79,184,178,0.16)] text-[var(--sea-ink)] shadow-[0_12px_24px_rgba(23,58,64,0.08)]"
-										: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink-soft)] hover:-translate-y-0.5 hover:text-[var(--sea-ink)]"
-								}`}
-								key={scenario.id}
-								onClick={() => setActiveScenarioId(scenario.id)}
-								type="button"
-							>
-								{scenario.prompt}
-							</button>
-						))}
-					</div>
-				</div>
-
-				<div className="island-shell rounded-2xl p-4 sm:p-5">
-					<div className="mb-4 flex items-start gap-3 border-b border-[var(--line)] pb-4">
-						<div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--sea-ink)] text-white">
-							<Bot size={20} />
-						</div>
-						<div>
-							<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-								{activeScenario.prompt}
-							</p>
-							<p className="m-0 mt-1 text-sm text-[var(--sea-ink-soft)]">
-								Based on current metrics from connected revenue, cloud, and
-								banking sources.
-							</p>
-						</div>
-					</div>
-
-					<div className="grid gap-4 xl:grid-cols-[1fr_0.72fr]">
-						<div>
-							<ResponseSection icon={Sparkles} title="Forecast Summary">
-								<p className="m-0 text-sm leading-6 text-[var(--sea-ink-soft)]">
-									{activeScenario.summary}
-								</p>
-								<div className="mt-3 grid gap-2 sm:grid-cols-2">
-									{activeScenario.numbers.map(([label, value]) => (
-										<div
-											className="rounded-lg border border-[var(--line)] bg-white/55 p-3 dark:bg-white/5"
-											key={label}
-										>
-											<p className="m-0 text-xs font-bold text-[var(--sea-ink-soft)]">
-												{label}
-											</p>
-											<p className="m-0 mt-1 text-lg font-extrabold text-[var(--sea-ink)]">
-												{value}
-											</p>
-										</div>
-									))}
-								</div>
-							</ResponseSection>
-
-							<ResponseSection icon={ShieldAlert} title="Risk Level">
-								<div className="inline-flex rounded-lg border border-red-500/30 bg-red-100 px-3 py-2 text-sm font-extrabold text-red-700 dark:bg-red-950/40 dark:text-red-200">
-									{activeScenario.risk}
-								</div>
-								<p className="mt-3 text-sm leading-6 text-[var(--sea-ink-soft)]">
-									{activeScenario.keyRisk}
-								</p>
-							</ResponseSection>
-
-							<ResponseSection icon={ArrowRight} title="Recommendation">
-								<ul className="m-0 space-y-2 p-0">
-									{activeScenario.recommendations.map((recommendation) => (
-										<li
-											className="flex gap-2 text-sm leading-6 text-[var(--sea-ink-soft)]"
-											key={recommendation}
-										>
-											<Check
-												className="mt-1 shrink-0 text-emerald-600"
-												size={15}
-											/>
-											{recommendation}
-										</li>
-									))}
-								</ul>
-							</ResponseSection>
-						</div>
-
-						<aside className="rounded-2xl border border-[var(--line)] bg-white/55 p-4 dark:bg-white/5">
-							<p className="island-kicker mb-2">AI Confidence Level</p>
-							<div className="mb-4 flex items-end gap-2">
-								<span className="text-4xl font-extrabold text-[var(--sea-ink)]">
-									{activeScenario.confidence}%
-								</span>
-								<span className="pb-1 text-sm font-bold text-[var(--sea-ink-soft)]">
-									confidence
-								</span>
-							</div>
-							<div className="h-2 overflow-hidden rounded-full bg-[rgba(23,58,64,0.12)]">
-								<div
-									className="h-full rounded-full bg-[linear-gradient(90deg,#16a34a,#f59e0b)]"
-									style={{ width: `${activeScenario.confidence}%` }}
-								/>
-							</div>
-							<p className="mb-3 mt-5 text-sm font-extrabold text-[var(--sea-ink)]">
-								Based on current metrics
-							</p>
-							<ul className="m-0 space-y-2 p-0">
-								{activeScenario.basedOn.map((item) => (
-									<li
-										className="border-b border-[var(--line)] pb-2 text-sm leading-6 text-[var(--sea-ink-soft)] last:border-0 last:pb-0"
-										key={item}
-									>
-										{item}
-									</li>
-								))}
-							</ul>
-						</aside>
-					</div>
-				</div>
-			</section>
 
 			{pendingIntegration ? (
 				<ConnectionModal
