@@ -456,7 +456,6 @@ function App() {
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
 	const [dashboardUnlocked] = useState(true);
-	const [showProviders, setShowProviders] = useState(false);
 	const [activeScenarioId, setActiveScenarioId] = useState(
 		scenarios[0]?.id ?? "current-trend",
 	);
@@ -537,19 +536,17 @@ function App() {
 					Forecast your cloud growth and runway
 				</h1>
 				<div className="flex flex-wrap gap-3">
-					<button
-						onClick={() => setShowProviders(true)}
-						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] hover:-translate-y-0.5"
-						type="button"
+					<a
+						href="/connect"
+						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
 					>
 						Connect Providers
 						<ArrowRight size={16} />
-					</button>
+					</a>
 				</div>
 			</section>
 
-			{showProviders && (
-				<section id="connect" className="mt-10">
+			<section id="connect" className="mt-10 hidden">
 				<div className="mb-4">
 					<p className="island-kicker mb-2">Connect Providers</p>
 				</div>
@@ -648,9 +645,8 @@ function App() {
 					</button>
 				</div>
 			</section>
-			)}
 
-			{showProviders && connectedProviders.length > 0 ? (
+			{connectedProviders.length > 0 ? (
 				<section className="mt-8">
 					<div className="mb-4">
 						<p className="island-kicker mb-2">Connected source data</p>
