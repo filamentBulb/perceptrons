@@ -44,9 +44,9 @@ export default function Header() {
 						Home
 					</Link>
 					<Link
-						to="/"
-						hash="ai-cfo"
+						to="/ai-cfo"
 						className="nav-link"
+						activeProps={{ className: "nav-link is-active" }}
 						onClick={(event) => {
 							if (canOpenAiCfo) return;
 

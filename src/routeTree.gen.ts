@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ConnectRouteImport } from './routes/connect'
+import { Route as AiCfoRouteImport } from './routes/ai-cfo'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTableRouteImport } from './routes/demo/table'
@@ -24,6 +25,7 @@ import { Route as DemoGuitarsGuitarIdRouteImport } from './routes/demo/guitars/$
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 import { Route as DemoApiMcpTodosRouteImport } from './routes/demo/api.mcp-todos'
+import { Route as ApiAiCfoChatRouteImport } from './routes/api.ai-cfo.chat'
 import { Route as DemoApiAiTtsRouteImport } from './routes/demo/api.ai.tts'
 import { Route as DemoApiAiTranscriptionRouteImport } from './routes/demo/api.ai.transcription'
 import { Route as DemoApiAiStructuredRouteImport } from './routes/demo/api.ai.structured'
@@ -38,6 +40,11 @@ const McpRoute = McpRouteImport.update({
 const ConnectRoute = ConnectRouteImport.update({
   id: '/connect',
   path: '/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCfoRoute = AiCfoRouteImport.update({
+  id: '/ai-cfo',
+  path: '/ai-cfo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -105,6 +112,11 @@ const DemoApiMcpTodosRoute = DemoApiMcpTodosRouteImport.update({
   path: '/demo/api/mcp-todos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiCfoChatRoute = ApiAiCfoChatRouteImport.update({
+  id: '/api/ai-cfo/chat',
+  path: '/api/ai-cfo/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoApiAiTtsRoute = DemoApiAiTtsRouteImport.update({
   id: '/demo/api/ai/tts',
   path: '/demo/api/ai/tts',
@@ -134,6 +146,7 @@ const DemoApiAiChatRoute = DemoApiAiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
@@ -142,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
+  '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -156,6 +170,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
@@ -164,6 +179,7 @@ export interface FileRoutesByTo {
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
+  '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -179,6 +195,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/mcp': typeof McpRoute
   '/demo/ai-chat': typeof DemoAiChatRoute
@@ -187,6 +204,7 @@ export interface FileRoutesById {
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/table': typeof DemoTableRoute
+  '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -203,6 +221,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/ai-cfo'
     | '/connect'
     | '/mcp'
     | '/demo/ai-chat'
@@ -211,6 +230,7 @@ export interface FileRouteTypes {
     | '/demo/mcp-todos'
     | '/demo/store'
     | '/demo/table'
+    | '/api/ai-cfo/chat'
     | '/demo/api/mcp-todos'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -225,6 +245,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/ai-cfo'
     | '/connect'
     | '/mcp'
     | '/demo/ai-chat'
@@ -233,6 +254,7 @@ export interface FileRouteTypes {
     | '/demo/mcp-todos'
     | '/demo/store'
     | '/demo/table'
+    | '/api/ai-cfo/chat'
     | '/demo/api/mcp-todos'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -247,6 +269,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/ai-cfo'
     | '/connect'
     | '/mcp'
     | '/demo/ai-chat'
@@ -255,6 +278,7 @@ export interface FileRouteTypes {
     | '/demo/mcp-todos'
     | '/demo/store'
     | '/demo/table'
+    | '/api/ai-cfo/chat'
     | '/demo/api/mcp-todos'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -270,6 +294,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AiCfoRoute: typeof AiCfoRoute
   ConnectRoute: typeof ConnectRoute
   McpRoute: typeof McpRoute
   DemoAiChatRoute: typeof DemoAiChatRoute
@@ -278,6 +303,7 @@ export interface RootRouteChildren {
   DemoMcpTodosRoute: typeof DemoMcpTodosRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTableRoute: typeof DemoTableRoute
+  ApiAiCfoChatRoute: typeof ApiAiCfoChatRoute
   DemoApiMcpTodosRoute: typeof DemoApiMcpTodosRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
@@ -304,6 +330,13 @@ declare module '@tanstack/react-router' {
       path: '/connect'
       fullPath: '/connect'
       preLoaderRoute: typeof ConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-cfo': {
+      id: '/ai-cfo'
+      path: '/ai-cfo'
+      fullPath: '/ai-cfo'
+      preLoaderRoute: typeof AiCfoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -397,6 +430,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoApiMcpTodosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai-cfo/chat': {
+      id: '/api/ai-cfo/chat'
+      path: '/api/ai-cfo/chat'
+      fullPath: '/api/ai-cfo/chat'
+      preLoaderRoute: typeof ApiAiCfoChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/api/ai/tts': {
       id: '/demo/api/ai/tts'
       path: '/demo/api/ai/tts'
@@ -438,6 +478,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AiCfoRoute: AiCfoRoute,
   ConnectRoute: ConnectRoute,
   McpRoute: McpRoute,
   DemoAiChatRoute: DemoAiChatRoute,
@@ -446,6 +487,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoMcpTodosRoute: DemoMcpTodosRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoTableRoute: DemoTableRoute,
+  ApiAiCfoChatRoute: ApiAiCfoChatRoute,
   DemoApiMcpTodosRoute: DemoApiMcpTodosRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,

@@ -4,7 +4,6 @@ import {
 	Activity,
 	ArrowRight,
 	Banknote,
-	Bot,
 	Check,
 	Cloud,
 	CreditCard,
@@ -16,7 +15,6 @@ import {
 	ReceiptText,
 	Server,
 	ShieldAlert,
-	Sparkles,
 	TrendingDown,
 	Wallet,
 	X,
@@ -630,7 +628,7 @@ function App() {
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
 	const [dashboardUnlocked, setDashboardUnlocked] = useState(true);
-	const [activeScenarioId, setActiveScenarioId] = useState(scenarios[0].id);
+	const [activeScenarioId] = useState(scenarios[0].id);
 
 	const activeScenario = useMemo(
 		() =>
@@ -713,7 +711,7 @@ function App() {
 					</p>
 					<div className="flex flex-wrap gap-3">
 						<a
-							href="#ai-cfo"
+							href="/ai-cfo"
 							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
 						>
 							Ask AI CFO
@@ -999,137 +997,6 @@ function App() {
 								))}
 							</ul>
 						</div>
-					</div>
-				</div>
-			</section>
-
-			<section
-				id="ai-cfo"
-				className={
-					dashboardUnlocked
-						? "mt-10 grid gap-4 lg:grid-cols-[0.86fr_1.14fr]"
-						: "hidden"
-				}
-			>
-				<div className="island-shell rounded-2xl p-4 sm:p-5">
-					<p className="island-kicker mb-2">Step 3</p>
-					<h2 className="mb-4 text-2xl font-extrabold text-[var(--sea-ink)]">
-						AI CFO chat
-					</h2>
-					<div className="space-y-3">
-						{scenarios.map((scenario) => (
-							<button
-								className={`w-full rounded-lg border px-4 py-3 text-left text-sm font-bold leading-6 transition ${
-									scenario.id === activeScenario.id
-										? "border-[rgba(50,143,151,0.45)] bg-[rgba(79,184,178,0.16)] text-[var(--sea-ink)] shadow-[0_12px_24px_rgba(23,58,64,0.08)]"
-										: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink-soft)] hover:-translate-y-0.5 hover:text-[var(--sea-ink)]"
-								}`}
-								key={scenario.id}
-								onClick={() => setActiveScenarioId(scenario.id)}
-								type="button"
-							>
-								{scenario.prompt}
-							</button>
-						))}
-					</div>
-				</div>
-
-				<div className="island-shell rounded-2xl p-4 sm:p-5">
-					<div className="mb-4 flex items-start gap-3 border-b border-[var(--line)] pb-4">
-						<div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--sea-ink)] text-white">
-							<Bot size={20} />
-						</div>
-						<div>
-							<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-								{activeScenario.prompt}
-							</p>
-							<p className="m-0 mt-1 text-sm text-[var(--sea-ink-soft)]">
-								Based on current metrics from connected revenue, cloud, and
-								banking sources.
-							</p>
-						</div>
-					</div>
-
-					<div className="grid gap-4 xl:grid-cols-[1fr_0.72fr]">
-						<div>
-							<ResponseSection icon={Sparkles} title="Forecast Summary">
-								<p className="m-0 text-sm leading-6 text-[var(--sea-ink-soft)]">
-									{activeScenario.summary}
-								</p>
-								<div className="mt-3 grid gap-2 sm:grid-cols-2">
-									{activeScenario.numbers.map(([label, value]) => (
-										<div
-											className="rounded-lg border border-[var(--line)] bg-white/55 p-3 dark:bg-white/5"
-											key={label}
-										>
-											<p className="m-0 text-xs font-bold text-[var(--sea-ink-soft)]">
-												{label}
-											</p>
-											<p className="m-0 mt-1 text-lg font-extrabold text-[var(--sea-ink)]">
-												{value}
-											</p>
-										</div>
-									))}
-								</div>
-							</ResponseSection>
-
-							<ResponseSection icon={ShieldAlert} title="Risk Level">
-								<div className="inline-flex rounded-lg border border-red-500/30 bg-red-100 px-3 py-2 text-sm font-extrabold text-red-700 dark:bg-red-950/40 dark:text-red-200">
-									{activeScenario.risk}
-								</div>
-								<p className="mt-3 text-sm leading-6 text-[var(--sea-ink-soft)]">
-									{activeScenario.keyRisk}
-								</p>
-							</ResponseSection>
-
-							<ResponseSection icon={ArrowRight} title="Recommendation">
-								<ul className="m-0 space-y-2 p-0">
-									{activeScenario.recommendations.map((recommendation) => (
-										<li
-											className="flex gap-2 text-sm leading-6 text-[var(--sea-ink-soft)]"
-											key={recommendation}
-										>
-											<Check
-												className="mt-1 shrink-0 text-emerald-600"
-												size={15}
-											/>
-											{recommendation}
-										</li>
-									))}
-								</ul>
-							</ResponseSection>
-						</div>
-
-						<aside className="rounded-2xl border border-[var(--line)] bg-white/55 p-4 dark:bg-white/5">
-							<p className="island-kicker mb-2">AI Confidence Level</p>
-							<div className="mb-4 flex items-end gap-2">
-								<span className="text-4xl font-extrabold text-[var(--sea-ink)]">
-									{activeScenario.confidence}%
-								</span>
-								<span className="pb-1 text-sm font-bold text-[var(--sea-ink-soft)]">
-									confidence
-								</span>
-							</div>
-							<div className="h-2 overflow-hidden rounded-full bg-[rgba(23,58,64,0.12)]">
-								<div
-									className="h-full rounded-full bg-[linear-gradient(90deg,#16a34a,#f59e0b)]"
-									style={{ width: `${activeScenario.confidence}%` }}
-								/>
-							</div>
-							<p className="mb-3 mt-5 text-sm font-extrabold text-[var(--sea-ink)]">
-								Based on current metrics
-							</p>
-							<ul className="m-0 space-y-2 p-0">
-								{activeScenario.basedOn.map((item) => (
-									<li
-										className="border-b border-[var(--line)] pb-2 text-sm leading-6 text-[var(--sea-ink-soft)] last:border-0 last:pb-0"
-										key={item}
-									>
-										{item}
-									</li>
-								))}
-							</ul>
-						</aside>
 					</div>
 				</div>
 			</section>
@@ -1622,28 +1489,6 @@ function ServiceSpendBars({
 				</div>
 			))}
 		</div>
-	);
-}
-
-function ResponseSection({
-	icon: Icon,
-	title,
-	children,
-}: {
-	icon: typeof Sparkles;
-	title: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<section className="mb-5 last:mb-0">
-			<div className="mb-3 flex items-center gap-2">
-				<Icon className="text-[var(--lagoon-deep)]" size={17} />
-				<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
-					{title}
-				</h3>
-			</div>
-			{children}
-		</section>
 	);
 }
 
