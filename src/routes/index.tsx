@@ -456,6 +456,7 @@ function App() {
 		useState<Integration | null>(null);
 	const [connectionStep, setConnectionStep] = useState(0);
 	const [dashboardUnlocked] = useState(true);
+	const [showProviders, setShowProviders] = useState(false);
 	const [activeScenarioId, setActiveScenarioId] = useState(
 		scenarios[0]?.id ?? "current-trend",
 	);
@@ -531,27 +532,26 @@ function App() {
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
-			<section className="rise-in">
+			<section className="rise-in flex min-h-[60vh] flex-col items-center justify-center text-center">
 				<h1 className="display-title mb-5 max-w-4xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
 					Forecast your cloud growth and runway
 				</h1>
 				<div className="flex flex-wrap gap-3">
-					<a
-						href="#connect"
-						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
+					<button
+						onClick={() => setShowProviders(true)}
+						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] hover:-translate-y-0.5"
+						type="button"
 					>
-						Review cloud scenarios
+						Connect Providers
 						<ArrowRight size={16} />
-					</a>
+					</button>
 				</div>
 			</section>
 
-			<section id="connect" className="mt-10">
+			{showProviders && (
+				<section id="connect" className="mt-10">
 				<div className="mb-4">
 					<p className="island-kicker mb-2">Connect Providers</p>
-					<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-						Your startup stack
-					</h2>
 				</div>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{integrations.map((integration) => {
@@ -648,8 +648,9 @@ function App() {
 					</button>
 				</div>
 			</section>
+			)}
 
-			{connectedProviders.length > 0 ? (
+			{showProviders && connectedProviders.length > 0 ? (
 				<section className="mt-8">
 					<div className="mb-4">
 						<p className="island-kicker mb-2">Connected source data</p>
