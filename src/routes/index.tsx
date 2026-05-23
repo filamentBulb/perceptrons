@@ -257,41 +257,41 @@ function ConnectSources() {
 				<ForecastLink enabled={canOpenForecasts} />
 			</section>
 
-			<section className="mt-10 grid gap-8 lg:grid-cols-2">
+			<section className="mt-10 grid gap-6 lg:grid-cols-2">
 				{/* Expenses Column */}
 				<div>
-					<h2 className="mb-4 text-center text-xl font-extrabold text-[var(--sea-ink)]">
+					<h2 className="mb-3 text-center text-xl font-extrabold text-[var(--sea-ink)]">
 						Expenses
 					</h2>
-					<div className="space-y-3">
+					<div className="space-y-2">
 						{expenseIntegrations.map((integration) => {
 							const isConnected = connected.includes(integration.id);
 
 							return (
 								<article
-									className="feature-card rounded-lg p-4"
+									className="feature-card rounded-lg p-3"
 									key={integration.id}
 								>
-									<div className="mb-4 flex items-start justify-between gap-3">
+									<div className="mb-2 flex items-start justify-between gap-3">
 										<div>
 											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
 												{integration.name}
 											</h3>
 										</div>
 										{isConnected ? (
-											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
-												<Check size={16} />
+											<span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500 text-white">
+												<Check size={14} />
 											</span>
 										) : null}
 									</div>
-									<p className="mb-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
+									<p className="mb-2 text-sm leading-5 text-[var(--sea-ink-soft)]">
 										{integration.detail}
 									</p>
 									{isConnected ? (
 										<SyncedPreview integration={integration} />
 									) : null}
 									<button
-										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+										className={`mt-2 w-full rounded-lg border px-3 py-1.5 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
 											isConnected
 												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
 												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
@@ -309,38 +309,38 @@ function ConnectSources() {
 
 				{/* Funding/Revenue Column */}
 				<div>
-					<h2 className="mb-4 text-center text-xl font-extrabold text-[var(--sea-ink)]">
+					<h2 className="mb-3 text-center text-xl font-extrabold text-[var(--sea-ink)]">
 						Funding/Revenue
 					</h2>
-					<div className="space-y-3">
+					<div className="space-y-2">
 						{revenueIntegrations.map((integration) => {
 							const isConnected = connected.includes(integration.id);
 
 							return (
 								<article
-									className="feature-card rounded-lg p-4"
+									className="feature-card rounded-lg p-3"
 									key={integration.id}
 								>
-									<div className="mb-4 flex items-start justify-between gap-3">
+									<div className="mb-2 flex items-start justify-between gap-3">
 										<div>
 											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
 												{integration.name}
 											</h3>
 										</div>
 										{isConnected ? (
-											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
-												<Check size={16} />
+											<span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500 text-white">
+												<Check size={14} />
 											</span>
 										) : null}
 									</div>
-									<p className="mb-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
+									<p className="mb-2 text-sm leading-5 text-[var(--sea-ink-soft)]">
 										{integration.detail}
 									</p>
 									{isConnected ? (
 										<SyncedPreview integration={integration} />
 									) : null}
 									<button
-										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+										className={`mt-2 w-full rounded-lg border px-3 py-1.5 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
 											isConnected
 												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
 												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
