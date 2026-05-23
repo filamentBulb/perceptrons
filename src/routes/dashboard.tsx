@@ -30,126 +30,458 @@ const monthlyData = [
 	{ month: "Dec", revenue: 205800, expenses: 146200, cloudCost: 120600 },
 ];
 
-const cloudProviders = [
-	{ name: "AWS", spend: 42380, growth: 22, color: "bg-orange-500" },
-	{ name: "GCP", spend: 21640, growth: 27, color: "bg-blue-500" },
-	{ name: "Azure", spend: 18200, growth: 18, color: "bg-cyan-500" },
-	{ name: "Cloudflare", spend: 7180, growth: 15, color: "bg-yellow-500" },
+const CLOUD_PROVIDER_IDS = ["aws", "gcp", "azure", "cloudflare"] as const;
+type CloudProviderId = (typeof CLOUD_PROVIDER_IDS)[number];
+
+type ScaleBreakdownItem = {
+	label: string;
+	cost: number;
+};
+
+type ScaleTier = {
+	users: number;
+	dau: number;
+	concurrent: number;
+	total: number;
+	note: string;
+	breakdown: ReadonlyArray<ScaleBreakdownItem>;
+};
+
+type CloudScaleModel = {
+	name: string;
+	colorClass: string;
+	tiers: ReadonlyArray<ScaleTier>;
+};
+
+const cloudProviders: Array<{
+	id: CloudProviderId;
+	name: string;
+	spend: number;
+	growth: number;
+	color: string;
+}> = [
+	{ id: "aws", name: "AWS", spend: 42380, growth: 22, color: "bg-orange-500" },
+	{ id: "gcp", name: "GCP", spend: 21640, growth: 27, color: "bg-blue-500" },
+	{
+		id: "azure",
+		name: "Azure",
+		spend: 18200,
+		growth: 18,
+		color: "bg-cyan-500",
+	},
+	{
+		id: "cloudflare",
+		name: "Cloudflare",
+		spend: 7180,
+		growth: 15,
+		color: "bg-yellow-500",
+	},
 ];
 
-const AWS_SCALE_TIERS = [
-	{
-		users: 100,
-		dau: 10,
-		concurrent: 5,
-		breakdown: {
-			ec2: 15,
-			alb: 18,
-			s3: 1,
-			cloudwatch: 2,
-			aurora: 15,
-			elasticache: 0,
-			dataTransfer: 1,
-			networking: 32,
-		},
-		total: 84,
-		note: "t4g.small + minimal NAT",
+const CLOUD_SCALE_MODELS: Record<CloudProviderId, CloudScaleModel> = {
+	aws: {
+		name: "AWS",
+		colorClass: "bg-orange-500",
+		tiers: [
+			{
+				users: 100,
+				dau: 10,
+				concurrent: 5,
+				total: 84,
+				note: "t4g.small + minimal NAT",
+				breakdown: [
+					{ label: "EC2 (Compute)", cost: 15 },
+					{ label: "Load Balancer", cost: 18 },
+					{ label: "S3 Storage", cost: 1 },
+					{ label: "CloudWatch Logs", cost: 2 },
+					{ label: "Aurora DB", cost: 15 },
+					{ label: "ElastiCache", cost: 0 },
+					{ label: "Data Transfer Out", cost: 1 },
+					{ label: "Networking & EBS", cost: 32 },
+				],
+			},
+			{
+				users: 10_000,
+				dau: 1_000,
+				concurrent: 50,
+				total: 273,
+				note: "1x c6i.xlarge, db.t4g.medium",
+				breakdown: [
+					{ label: "EC2 (Compute)", cost: 130 },
+					{ label: "Load Balancer", cost: 20 },
+					{ label: "S3 Storage", cost: 1 },
+					{ label: "CloudWatch Logs", cost: 10 },
+					{ label: "Aurora DB", cost: 60 },
+					{ label: "ElastiCache", cost: 12 },
+					{ label: "Data Transfer Out", cost: 5 },
+					{ label: "Networking & EBS", cost: 35 },
+				],
+			},
+			{
+				users: 100_000,
+				dau: 10_000,
+				concurrent: 500,
+				total: 905,
+				note: "2x c6i.xlarge, db.r6g.large",
+				breakdown: [
+					{ label: "EC2 (Compute)", cost: 500 },
+					{ label: "Load Balancer", cost: 25 },
+					{ label: "S3 Storage", cost: 5 },
+					{ label: "CloudWatch Logs", cost: 60 },
+					{ label: "Aurora DB", cost: 200 },
+					{ label: "ElastiCache", cost: 25 },
+					{ label: "Data Transfer Out", cost: 30 },
+					{ label: "Networking & EBS", cost: 60 },
+				],
+			},
+			{
+				users: 1_000_000,
+				dau: 100_000,
+				concurrent: 5_000,
+				total: 7270,
+				note: "18-20x c6i.xlarge/2xlarge, Aurora cluster",
+				breakdown: [
+					{ label: "EC2 (Compute)", cost: 5000 },
+					{ label: "Load Balancer", cost: 200 },
+					{ label: "S3 Storage", cost: 20 },
+					{ label: "CloudWatch Logs", cost: 550 },
+					{ label: "Aurora DB", cost: 750 },
+					{ label: "ElastiCache", cost: 150 },
+					{ label: "Data Transfer Out", cost: 300 },
+					{ label: "Networking & EBS", cost: 300 },
+				],
+			},
+		],
 	},
-	{
-		users: 10_000,
-		dau: 1_000,
-		concurrent: 50,
-		breakdown: {
-			ec2: 130,
-			alb: 20,
-			s3: 1,
-			cloudwatch: 10,
-			aurora: 60,
-			elasticache: 12,
-			dataTransfer: 5,
-			networking: 35,
-		},
-		total: 273,
-		note: "1x c6i.xlarge, db.t4g.medium",
+	gcp: {
+		name: "GCP",
+		colorClass: "bg-blue-500",
+		tiers: [
+			{
+				users: 100,
+				dau: 10,
+				concurrent: 5,
+				total: 63,
+				note: "Cloud Run + small Cloud SQL",
+				breakdown: [
+					{ label: "Compute", cost: 12 },
+					{ label: "Cloud Load Balancing", cost: 16 },
+					{ label: "Cloud Storage", cost: 1 },
+					{ label: "Cloud Logging", cost: 2 },
+					{ label: "Cloud SQL", cost: 13 },
+					{ label: "Memorystore", cost: 0 },
+					{ label: "Egress", cost: 1 },
+					{ label: "VPC & Disks", cost: 18 },
+				],
+			},
+			{
+				users: 10_000,
+				dau: 1_000,
+				concurrent: 50,
+				total: 218,
+				note: "GCE autoscale + db-custom-2",
+				breakdown: [
+					{ label: "Compute", cost: 105 },
+					{ label: "Cloud Load Balancing", cost: 16 },
+					{ label: "Cloud Storage", cost: 1 },
+					{ label: "Cloud Logging", cost: 8 },
+					{ label: "Cloud SQL", cost: 48 },
+					{ label: "Memorystore", cost: 10 },
+					{ label: "Egress", cost: 4 },
+					{ label: "VPC & Disks", cost: 26 },
+				],
+			},
+			{
+				users: 100_000,
+				dau: 10_000,
+				concurrent: 500,
+				total: 790,
+				note: "regional MIG + Cloud SQL HA",
+				breakdown: [
+					{ label: "Compute", cost: 430 },
+					{ label: "Cloud Load Balancing", cost: 24 },
+					{ label: "Cloud Storage", cost: 4 },
+					{ label: "Cloud Logging", cost: 55 },
+					{ label: "Cloud SQL", cost: 170 },
+					{ label: "Memorystore", cost: 22 },
+					{ label: "Egress", cost: 25 },
+					{ label: "VPC & Disks", cost: 60 },
+				],
+			},
+			{
+				users: 1_000_000,
+				dau: 100_000,
+				concurrent: 5_000,
+				total: 6420,
+				note: "multi-zone compute + regional SQL",
+				breakdown: [
+					{ label: "Compute", cost: 4200 },
+					{ label: "Cloud Load Balancing", cost: 180 },
+					{ label: "Cloud Storage", cost: 18 },
+					{ label: "Cloud Logging", cost: 520 },
+					{ label: "Cloud SQL", cost: 730 },
+					{ label: "Memorystore", cost: 130 },
+					{ label: "Egress", cost: 280 },
+					{ label: "VPC & Disks", cost: 362 },
+				],
+			},
+		],
 	},
-	{
-		users: 100_000,
-		dau: 10_000,
-		concurrent: 500,
-		breakdown: {
-			ec2: 500,
-			alb: 25,
-			s3: 5,
-			cloudwatch: 60,
-			aurora: 200,
-			elasticache: 25,
-			dataTransfer: 30,
-			networking: 60,
-		},
-		total: 905,
-		note: "2x c6i.xlarge, db.r6g.large",
+	azure: {
+		name: "Azure",
+		colorClass: "bg-cyan-500",
+		tiers: [
+			{
+				users: 100,
+				dau: 10,
+				concurrent: 5,
+				total: 72,
+				note: "small App Service + Azure SQL",
+				breakdown: [
+					{ label: "Compute", cost: 14 },
+					{ label: "App Gateway", cost: 20 },
+					{ label: "Blob Storage", cost: 1 },
+					{ label: "Azure Monitor", cost: 2 },
+					{ label: "Azure SQL", cost: 16 },
+					{ label: "Azure Cache", cost: 0 },
+					{ label: "Bandwidth", cost: 1 },
+					{ label: "Networking & Disks", cost: 18 },
+				],
+			},
+			{
+				users: 10_000,
+				dau: 1_000,
+				concurrent: 50,
+				total: 246,
+				note: "B-series app tier + Standard SQL",
+				breakdown: [
+					{ label: "Compute", cost: 118 },
+					{ label: "App Gateway", cost: 24 },
+					{ label: "Blob Storage", cost: 1 },
+					{ label: "Azure Monitor", cost: 9 },
+					{ label: "Azure SQL", cost: 55 },
+					{ label: "Azure Cache", cost: 12 },
+					{ label: "Bandwidth", cost: 5 },
+					{ label: "Networking & Disks", cost: 22 },
+				],
+			},
+			{
+				users: 100_000,
+				dau: 10_000,
+				concurrent: 500,
+				total: 860,
+				note: "VM scale set + zone-redundant SQL",
+				breakdown: [
+					{ label: "Compute", cost: 470 },
+					{ label: "App Gateway", cost: 38 },
+					{ label: "Blob Storage", cost: 4 },
+					{ label: "Azure Monitor", cost: 58 },
+					{ label: "Azure SQL", cost: 190 },
+					{ label: "Azure Cache", cost: 24 },
+					{ label: "Bandwidth", cost: 28 },
+					{ label: "Networking & Disks", cost: 48 },
+				],
+			},
+			{
+				users: 1_000_000,
+				dau: 100_000,
+				concurrent: 5_000,
+				total: 6890,
+				note: "scale sets + business critical SQL",
+				breakdown: [
+					{ label: "Compute", cost: 4500 },
+					{ label: "App Gateway", cost: 240 },
+					{ label: "Blob Storage", cost: 19 },
+					{ label: "Azure Monitor", cost: 530 },
+					{ label: "Azure SQL", cost: 780 },
+					{ label: "Azure Cache", cost: 140 },
+					{ label: "Bandwidth", cost: 300 },
+					{ label: "Networking & Disks", cost: 381 },
+				],
+			},
+		],
 	},
-	{
-		users: 1_000_000,
-		dau: 100_000,
-		concurrent: 5_000,
-		breakdown: {
-			ec2: 5000,
-			alb: 200,
-			s3: 20,
-			cloudwatch: 550,
-			aurora: 750,
-			elasticache: 150,
-			dataTransfer: 300,
-			networking: 300,
-		},
-		total: 7270,
-		note: "18-20x c6i.xlarge/2xlarge, Aurora cluster",
+	cloudflare: {
+		name: "Cloudflare",
+		colorClass: "bg-yellow-500",
+		tiers: [
+			{
+				users: 100,
+				dau: 10,
+				concurrent: 5,
+				total: 25,
+				note: "Workers + R2 starter edge stack",
+				breakdown: [
+					{ label: "Workers", cost: 5 },
+					{ label: "CDN & WAF", cost: 10 },
+					{ label: "R2 Storage", cost: 1 },
+					{ label: "Logs", cost: 2 },
+					{ label: "D1 Database", cost: 3 },
+					{ label: "KV", cost: 2 },
+					{ label: "Egress", cost: 0 },
+					{ label: "Networking", cost: 2 },
+				],
+			},
+			{
+				users: 10_000,
+				dau: 1_000,
+				concurrent: 50,
+				total: 96,
+				note: "Workers paid + light D1/R2 usage",
+				breakdown: [
+					{ label: "Workers", cost: 25 },
+					{ label: "CDN & WAF", cost: 20 },
+					{ label: "R2 Storage", cost: 2 },
+					{ label: "Logs", cost: 8 },
+					{ label: "D1 Database", cost: 15 },
+					{ label: "KV", cost: 8 },
+					{ label: "Egress", cost: 0 },
+					{ label: "Networking", cost: 18 },
+				],
+			},
+			{
+				users: 100_000,
+				dau: 10_000,
+				concurrent: 500,
+				total: 340,
+				note: "edge-first app + heavier D1 reads",
+				breakdown: [
+					{ label: "Workers", cost: 105 },
+					{ label: "CDN & WAF", cost: 45 },
+					{ label: "R2 Storage", cost: 6 },
+					{ label: "Logs", cost: 42 },
+					{ label: "D1 Database", cost: 70 },
+					{ label: "KV", cost: 22 },
+					{ label: "Egress", cost: 0 },
+					{ label: "Networking", cost: 50 },
+				],
+			},
+			{
+				users: 1_000_000,
+				dau: 100_000,
+				concurrent: 5_000,
+				total: 2600,
+				note: "high-volume Workers + regional data tier",
+				breakdown: [
+					{ label: "Workers", cost: 850 },
+					{ label: "CDN & WAF", cost: 220 },
+					{ label: "R2 Storage", cost: 20 },
+					{ label: "Logs", cost: 360 },
+					{ label: "D1 Database", cost: 760 },
+					{ label: "KV", cost: 160 },
+					{ label: "Egress", cost: 0 },
+					{ label: "Networking", cost: 230 },
+				],
+			},
+		],
 	},
-] as const;
-
-const SERVICE_LABELS: Record<string, string> = {
-	ec2: "EC2 (Compute)",
-	alb: "Load Balancer",
-	s3: "S3 Storage",
-	cloudwatch: "CloudWatch Logs",
-	aurora: "Aurora DB",
-	elasticache: "ElastiCache",
-	dataTransfer: "Data Transfer Out",
-	networking: "Networking & EBS",
 };
 
 const TIER_LABELS = ["100", "10K", "100K", "1M"] as const;
 
-function AwsScaleSlider() {
+function formatMonthlyCost(value: number) {
+	return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+}
+
+function CloudProviderScaleSlider() {
 	const [idx, setIdx] = useState(3);
-	const tier = AWS_SCALE_TIERS[idx];
+	const [selectedProviderId, setSelectedProviderId] =
+		useState<CloudProviderId>("aws");
+	const selectedProvider = CLOUD_SCALE_MODELS[selectedProviderId];
+	const tier = selectedProvider.tiers[idx] ?? selectedProvider.tiers[0];
+	const comparisonTotals = CLOUD_PROVIDER_IDS.map((providerId) => {
+		const provider = CLOUD_SCALE_MODELS[providerId];
+		const providerTier = provider.tiers[idx] ?? provider.tiers[0];
+
+		return {
+			id: providerId,
+			name: provider.name,
+			colorClass: provider.colorClass,
+			total: providerTier.total,
+		};
+	});
 
 	return (
 		<div className="island-shell rounded-2xl p-4 sm:p-6">
-			<div className="mb-4">
-				<p className="island-kicker mb-2">What-if / AWS only</p>
-				<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-					Cost at {TIER_LABELS[idx]} users
-				</h2>
-			</div>
-			<div className="mb-4 text-center">
-				<div className="text-4xl font-extrabold text-[var(--sea-ink)]">
-					$
-					{tier.total >= 1000
-						? `${(tier.total / 1000).toFixed(1)}k`
-						: tier.total}
-					/mo
+			<div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+				<div>
+					<p className="island-kicker mb-2">What-if / cloud providers</p>
+					<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
+						Scale cost simulator
+					</h2>
 				</div>
-				<p className="m-0 mt-2 text-sm text-[var(--sea-ink-soft)]">
-					{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
-					concurrent / {tier.note}
-				</p>
+				<div className="grid grid-cols-2 gap-2 sm:flex">
+					{CLOUD_PROVIDER_IDS.map((providerId) => {
+						const provider = CLOUD_SCALE_MODELS[providerId];
+						const isSelected = providerId === selectedProviderId;
+
+						return (
+							<button
+								key={providerId}
+								type="button"
+								aria-pressed={isSelected}
+								onClick={() => setSelectedProviderId(providerId)}
+								className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition-colors ${
+									isSelected
+										? "border-[var(--sea-ink)] bg-[var(--sea-ink)] text-white"
+										: "border-[var(--line)] bg-white/50 text-[var(--sea-ink)] hover:border-[var(--sea-ink)] dark:bg-white/5"
+								}`}
+							>
+								<span
+									className={`h-2.5 w-2.5 rounded-full ${provider.colorClass}`}
+									aria-hidden="true"
+								/>
+								{provider.name}
+							</button>
+						);
+					})}
+				</div>
 			</div>
+
+			<div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]">
+				<div className="rounded-xl border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5">
+					<p className="m-0 text-sm font-bold text-[var(--sea-ink-soft)]">
+						{selectedProvider.name} at {TIER_LABELS[idx]} users
+					</p>
+					<div className="mt-1 text-4xl font-extrabold text-[var(--sea-ink)]">
+						${formatMonthlyCost(tier.total)}/mo
+					</div>
+					<p className="m-0 mt-2 text-sm text-[var(--sea-ink-soft)]">
+						{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
+						concurrent / {tier.note}
+					</p>
+				</div>
+				<div className="grid grid-cols-2 gap-2">
+					{comparisonTotals.map((provider) => (
+						<div
+							key={provider.id}
+							className={`rounded-lg border p-3 ${
+								provider.id === selectedProviderId
+									? "border-[var(--sea-ink)] bg-[var(--surface-strong)]"
+									: "border-[var(--line)] bg-white/40 dark:bg-white/5"
+							}`}
+						>
+							<div className="mb-2 flex items-center gap-2">
+								<span
+									className={`h-2 w-2 rounded-full ${provider.colorClass}`}
+									aria-hidden="true"
+								/>
+								<span className="text-xs font-bold text-[var(--sea-ink-soft)]">
+									{provider.name}
+								</span>
+							</div>
+							<p className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
+								${formatMonthlyCost(provider.total)}
+							</p>
+						</div>
+					))}
+				</div>
+			</div>
+
 			<Slider
 				value={[idx]}
 				min={0}
-				max={3}
+				max={TIER_LABELS.length - 1}
 				step={1}
 				onValueChange={([value]) => setIdx(value)}
 				className="my-4"
@@ -160,22 +492,23 @@ function AwsScaleSlider() {
 				))}
 			</div>
 			<div className="grid gap-3 sm:grid-cols-2">
-				{Object.entries(tier.breakdown).map(([service, cost]) => {
-					const percentage = cost === 0 ? 0 : (cost / tier.total) * 100;
+				{tier.breakdown.map((item) => {
+					const percentage =
+						item.cost === 0 ? 0 : (item.cost / tier.total) * 100;
 
 					return (
-						<div key={service} className="space-y-1">
+						<div key={item.label} className="space-y-1">
 							<div className="flex items-center justify-between gap-3 text-sm">
 								<span className="font-bold text-[var(--sea-ink)]">
-									{SERVICE_LABELS[service]}
+									{item.label}
 								</span>
 								<span className="font-extrabold text-[var(--sea-ink)]">
-									${cost >= 1000 ? `${(cost / 1000).toFixed(1)}k` : cost}
+									${formatMonthlyCost(item.cost)}
 								</span>
 							</div>
 							<div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
 								<div
-									className="h-full rounded-full bg-gradient-to-r from-[var(--lagoon)] to-[var(--lagoon-deep)]"
+									className={`h-full rounded-full ${selectedProvider.colorClass}`}
 									style={{ width: `${percentage}%` }}
 								/>
 							</div>
@@ -406,7 +739,7 @@ function App() {
 			</div>
 
 			<section className="mt-8">
-				<AwsScaleSlider />
+				<CloudProviderScaleSlider />
 			</section>
 
 			{/* Expense Spikes Alert */}
