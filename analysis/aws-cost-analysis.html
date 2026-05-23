@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AWS Cost Analysis — 1M Users</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --line:#1f2a44; --ink:#e6edf7; --muted:#9aa7c2;
+    --accent:#5fb6ff; --good:#5fd58a; --warn:#ffb347; --bad:#ff6b6b; --kicker:#7cf;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+  header{padding:32px 24px 16px;max-width:1180px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:-.02em}
+  h2{font-size:18px;margin:28px 0 10px;color:var(--kicker);letter-spacing:.04em;text-transform:uppercase}
+  .kicker{color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
+  main{max-width:1180px;margin:0 auto;padding:0 24px 60px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card .v{font-size:22px;font-weight:600;margin:4px 0 2px}
+  .card .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+  .card .s{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .flag{background:rgba(255,179,71,.10);border-left:3px solid var(--warn);padding:10px 14px;border-radius:6px;color:#ffd9a3;font-size:13px;margin:10px 0}
+  .gap{background:rgba(255,107,107,.08);border-left:3px solid var(--bad);padding:10px 14px;border-radius:6px;color:#ffc6c6;font-size:13px;margin:10px 0}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#1a2640;color:var(--accent);font-size:11px;margin-right:4px}
+  .scen{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .scen .card .v{color:var(--good)}
+  .scen .card.mid .v{color:var(--accent)}
+  .scen .card.low .v{color:var(--warn)}
+  .footer{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+  details summary{cursor:pointer;color:var(--accent);margin:8px 0}
+  code{background:#0d1426;padding:1px 6px;border-radius:4px;color:#cfe4ff;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Runway AI CFO · Cost Analysis</div>
+  <h1>AWS Monthly Cost — 1,000,000 Users</h1>
+  <div id="meta-line" class="card" style="margin-top:14px"></div>
+</header>
+
+<main>
+  <section>
+    <h2>Stage Summary</h2>
+    <div id="summary-cards" class="cards"></div>
+  </section>
+
+  <section>
+    <h2>Task 1 — Startup Baseline (1M users)</h2>
+    <div id="baseline-notes"></div>
+    <div class="panel">
+      <table id="baseline-table"></table>
+    </div>
+    <details>
+      <summary>Literal-from-data baseline (configured workload, NOT 1M users)</summary>
+      <div class="panel">
+        <p>This is the direct read of <code>estimate.json</code> — what the data files literally describe (1 instance, 1 Fargate task, 100 GB logs, 100 GB S3, 1 ALB). No user scaling applied.</p>
+        <table id="literal-table"></table>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>Task 2 — Enterprise + Reserved / Savings Plans</h2>
+    <div id="ent-notes"></div>
+    <div class="panel">
+      <table id="enterprise-table"></table>
+    </div>
+    <div id="ent-delta"></div>
+  </section>
+
+  <section>
+    <h2>Task 3 — 3-Year EDP Scenarios</h2>
+    <div id="edp-notes"></div>
+    <div class="scen" id="edp-cards"></div>
+    <div id="edp-non-disc"></div>
+  </section>
+
+  <div class="footer" id="footer"></div>
+</main>
+
+<script id="data" type="application/json"></script>
+<script>
+  // Fetch JSON sibling; fallback to inline copy embedded by build.
+  async function loadData(){
+    try {
+      const r = await fetch('aws-cost-analysis.json');
+      if(r.ok) return r.json();
+    } catch(e){}
+    const inline = document.getElementById('data').textContent.trim();
+    if(inline) return JSON.parse(inline);
+    throw new Error('No data available');
+  }
+
+  const fmt = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
+  const pct = n => (n>0?'+':'') + n.toFixed(2) + '%';
+
+  function row(cells){ return '<tr>' + cells.map(c => typeof c==='object' ? `<td class="${c.cls||''}">${c.v}</td>` : `<td>${c}</td>`).join('') + '</tr>'; }
+  function header(cells){ return '<tr>' + cells.map(c => typeof c==='object' ? `<th class="${c.cls||''}">${c.v}</th>` : `<th>${c}</th>`).join('') + '</tr>'; }
+
+  function renderMeta(d){
+    document.getElementById('meta-line').innerHTML = `
+      <div class="l">Sources</div>
+      <div>Region <span class="pill">${d.meta.region}</span> · Pricing <span class="pill">${d.meta.pricingSource}</span></div>
+      <div style="color:var(--muted);font-size:12px;margin-top:6px">Data: ${d.meta.dataSources.join(' · ')}</div>
+      <div class="flag" style="margin-top:10px"><strong>User-scaling assumption flag:</strong> ${d.meta.userScalingAssumption}</div>
+      <div class="flag"><strong>Region flag:</strong> ${d.meta.regionFlag}</div>
+    `;
+  }
+
+  function renderSummary(d){
+    const c = document.getElementById('summary-cards');
+    c.innerHTML = d.summary.stages.map(s => `
+      <div class="card">
+        <div class="l">${s.stage}</div>
+        <div class="v">${fmt(s.monthlyUsd)}</div>
+        <div class="s">/ mo · ${fmt(s.annualUsd)} / yr</div>
+      </div>
+    `).join('');
+  }
+
+  function renderBaseline(d){
+    const b = d.baseline;
+    document.getElementById('baseline-notes').innerHTML = `
+      <p style="color:var(--muted)">${b.description}</p>
+      ${b.excluded_FLAGGED.map(e => `<div class="gap"><strong>Excluded — ${e.service}:</strong> ${e.reason}</div>`).join('')}
+    `;
+    const t = document.getElementById('baseline-table');
+    t.innerHTML =
+      header(['Service','SKU','Pricing model',{v:'Qty',cls:'num'},'Unit',{v:'Unit $',cls:'num'},{v:'Monthly $',cls:'num'},'Tier · qty assumption']) +
+      b.lineItems.map(li => row([
+        li.service, li.sku, li.pricingModel,
+        {v: Number(li.quantity).toLocaleString(), cls:'num'},
+        li.unit,
+        {v: li.unitPriceUsd, cls:'num'},
+        {v: fmt(li.monthlyCostUsd), cls:'num'},
+        `${li.tier}<br><span style="color:var(--muted);font-size:11px">${li.qtyAssumption||''}</span>`
+      ])).join('') +
+      row([{v:'<strong>Total (1M users)</strong>', cls:''},'','','','','',{v:`<strong>${fmt(b.monthlyCostUsd)}</strong>`, cls:'num'},`<strong>${fmt(b.annualCostUsd)} / yr</strong>`]);
+  }
+
+  function renderLiteral(d){
+    const b = d.baseline_from_data_literal;
+    const t = document.getElementById('literal-table');
+    t.innerHTML =
+      header(['Service','SKU','Pricing model',{v:'Qty',cls:'num'},'Unit',{v:'Unit $',cls:'num'},{v:'Monthly $',cls:'num'},'Tier']) +
+      b.lineItems.map(li => row([
+        li.service, li.sku, li.pricingModel,
+        {v: Number(li.quantity).toLocaleString(), cls:'num'},
+        li.unit, {v: li.unitPriceUsd, cls:'num'}, {v: fmt(li.monthlyCostUsd), cls:'num'}, li.tier
+      ])).join('') +
+      row(['<strong>Total (literal)</strong>','','','','','',{v:`<strong>${fmt(b.monthlyCostUsd)}</strong>`, cls:'num'},'']);
+  }
+
+  function renderEnterprise(d){
+    const e = d.enterprise_reserved;
+    document.getElementById('ent-notes').innerHTML = `
+      <p style="color:var(--muted)">${e.description}</p>
+      <div class="flag"><strong>Discount assumptions:</strong> EC2 1-yr no-upfront RI ${e.discountAssumptions_FLAGGED.ec2_ri_1yr_no_upfront_pct}% · Fargate Compute Savings Plan ${e.discountAssumptions_FLAGGED.fargate_savings_plan_1yr_no_upfront_pct}% · Enterprise Support ${e.discountAssumptions_FLAGGED.enterprise_support_pct_of_bill}% of bill (min ${fmt(e.discountAssumptions_FLAGGED.enterprise_support_min_monthly_usd)}). Non-eligible: ${e.discountAssumptions_FLAGGED.non_eligible.join(', ')}.</div>
+    `;
+    const t = document.getElementById('enterprise-table');
+    t.innerHTML =
+      header(['Service','SKU',{v:'Discount %',cls:'num'},{v:'Monthly $',cls:'num'},'Note']) +
+      e.lineItems.map(li => row([
+        li.service, li.sku,
+        {v: li.discountPct + '%', cls:'num'},
+        {v: fmt(li.monthlyCostUsd), cls:'num'},
+        li.note
+      ])).join('') +
+      row([{v:'<strong>Total</strong>'},'','',{v:`<strong>${fmt(e.monthlyCostUsd)}</strong>`,cls:'num'},`<strong>${fmt(e.annualCostUsd)} / yr</strong>`]);
+
+    document.getElementById('ent-delta').innerHTML = `
+      <div class="panel">
+        <div class="cards">
+          <div class="card"><div class="l">Compute savings (RI+SP)</div><div class="v" style="color:var(--good)">${fmt(e.deltaVsBaseline.compute_savings_usd)}</div><div class="s">/mo</div></div>
+          <div class="card"><div class="l">Support added</div><div class="v" style="color:var(--warn)">+${fmt(e.deltaVsBaseline.support_added_usd)}</div><div class="s">/mo (floor)</div></div>
+          <div class="card"><div class="l">Net delta vs baseline</div><div class="v" style="color:var(--bad)">+${fmt(e.deltaVsBaseline.net_monthly_usd)}</div><div class="s">${pct(e.deltaVsBaseline.net_pct)} · /mo</div></div>
+        </div>
+        <div class="flag" style="margin-top:12px">${e.deltaVsBaseline.insight_FLAGGED}</div>
+      </div>
+    `;
+  }
+
+  function renderEdp(d){
+    const edp = d.edp_scenarios;
+    document.getElementById('edp-notes').innerHTML = `
+      <p style="color:var(--muted)">${edp.description}</p>
+      <div class="card" style="margin:10px 0">
+        <div class="l">3-year commit</div>
+        <div class="v">${fmt(edp.commitment.totalCommitUsd)}</div>
+        <div class="s">${fmt(edp.commitment.annualSpendBaselineUsd)} / yr × ${edp.commitment.years} yrs</div>
+      </div>
+      <div class="flag">${edp.note_FLAGGED}</div>
+    `;
+    const cards = ['low','mid','high'].map(k => {
+      const s = edp[k];
+      return `
+        <div class="card ${k}">
+          <div class="l">${s.label} · ${s.discountPct}% off</div>
+          <div class="v">${fmt(s.monthlyCostUsd)}<span style="font-size:13px;color:var(--muted)"> / mo</span></div>
+          <div class="s">Annual ${fmt(s.annualCostUsd)}</div>
+          <div class="s">3-yr total <strong>${fmt(s.threeYearTotalUsd)}</strong></div>
+          <div class="s" style="color:var(--good)">Savings ${fmt(s.threeYearSavingsUsd)}</div>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('edp-cards').innerHTML = cards;
+    document.getElementById('edp-non-disc').innerHTML = `
+      <div class="panel">
+        <div class="l" style="color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase">Non-discountable services</div>
+        <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted)">
+          ${edp.nonDiscountable_FLAGGED.map(x => `<li>${x}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  function renderFooter(d){
+    document.getElementById('footer').innerHTML = `
+      <div><strong>Data gaps flagged:</strong></div>
+      <ul style="margin:6px 0 0;padding-left:18px">${d.meta.gapsInData_FLAGGED.map(g => `<li>${g}</li>`).join('')}</ul>
+      <div style="margin-top:10px">Generated ${d.meta.generated} · all unit prices from ${d.meta.pricingSource}. Quantities ≠ literal-from-data baseline are flagged assumptions.</div>
+    `;
+  }
+
+  loadData().then(d => {
+    renderMeta(d);
+    renderSummary(d);
+    renderBaseline(d);
+    renderLiteral(d);
+    renderEnterprise(d);
+    renderEdp(d);
+    renderFooter(d);
+  }).catch(e => {
+    document.body.insertAdjacentHTML('beforeend', `<div class="gap" style="margin:24px">Failed to load data: ${e.message}. Serve this folder over HTTP or embed JSON in <code>&lt;script id="data"&gt;</code>.</div>`);
+  });
+</script>
+</body>
+</html>

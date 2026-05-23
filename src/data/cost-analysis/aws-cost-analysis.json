@@ -1,0 +1,436 @@
+{
+	"meta": {
+		"generated": "2026-05-23",
+		"currency": "USD",
+		"region": "eu-central-1 (Frankfurt)",
+		"regionFlag": "Data file region is eu-central-1; task prompt example referenced us-east-1. Used eu-central-1 from data.",
+		"dataSources": [
+			"src/data/cloud-pricing/inputs.json",
+			"src/data/cloud-pricing/estimate.json"
+		],
+		"pricingSource": "aws_price_list_bulk_api (per estimate.json sourceUrl fields)",
+		"userScalingAssumption": "Source data has NO user-count dimension. Configured usage = 1 instance, 1 Fargate task, 100 GB logs, 100 GB S3, 1 ALB. Per-user coefficients below are FLAGGED ASSUMPTIONS, not from data.",
+		"perUserCoefficients_FLAGGED": {
+			"compute_users_per_t3_medium": 5000,
+			"fargate_vcpu_hours_scale_factor_vs_baseline": 1000,
+			"fargate_mem_gb_hours_scale_factor_vs_baseline": 1000,
+			"logs_ingest_mb_per_user_per_month": 10,
+			"logs_storage_gb_per_user": 0.01,
+			"s3_storage_mb_per_user": 50,
+			"s3_put_per_user_per_month": 100,
+			"s3_get_per_user_per_month": 1000,
+			"alb_count_HA": 2,
+			"alb_lcu_scale_factor_vs_baseline": 100
+		},
+		"gapsInData_FLAGGED": [
+			"No data-transfer-out (egress) SKU priced. 1M-user egress (est. ~200 TB) excluded from totals.",
+			"No RDS, ElastiCache, OpenSearch, CloudFront, NAT Gateway, WAF, GuardDuty, Route53, KMS, Secrets Manager, Backup, Shield, SES, SNS, SQS, MSK, Kinesis, Bedrock, SageMaker SKUs in dataset.",
+			"Enterprise tier figures (Task 2/3) therefore lower-bound; real enterprise stack adds $200k-$500k/mo not modelled."
+		]
+	},
+
+	"baseline_from_data_literal": {
+		"description": "Direct read of estimate.json line items. Represents configured workload (1 instance / 100 GB / 1 ALB), NOT 1M users.",
+		"monthlyCostUsd": 123.36,
+		"lineItems": [
+			{
+				"service": "EC2",
+				"sku": "t3.medium",
+				"pricingModel": "On-Demand per instance-hour",
+				"quantity": 730,
+				"unit": "instance-hours",
+				"unitPriceUsd": 0.048,
+				"monthlyCostUsd": 35.04,
+				"tier": "EC2 t3.medium On-Demand Linux, eu-central-1"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-vcpu-hour",
+				"pricingModel": "Per vCPU-hour",
+				"quantity": 365,
+				"unit": "vcpu-hours",
+				"unitPriceUsd": 0.053544,
+				"monthlyCostUsd": 19.54,
+				"tier": "Fargate Linux vCPU, eu-central-1"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-memory-gb-hour",
+				"pricingModel": "Per GB-hour",
+				"quantity": 730,
+				"unit": "gb-hours",
+				"unitPriceUsd": 0.00409,
+				"monthlyCostUsd": 2.99,
+				"tier": "Fargate Linux memory, eu-central-1"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-ingest-gb",
+				"pricingModel": "Per GB ingested",
+				"quantity": 100,
+				"unit": "GB",
+				"unitPriceUsd": 0.315,
+				"monthlyCostUsd": 31.5,
+				"tier": "CloudWatch Logs IA ingest, eu-central-1"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-storage-gb-month",
+				"pricingModel": "Per GB-month",
+				"quantity": 100,
+				"unit": "GB-month",
+				"unitPriceUsd": 0.0324,
+				"monthlyCostUsd": 3.24,
+				"tier": "CloudWatch Logs storage, eu-central-1"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-storage-gb-month",
+				"pricingModel": "Per GB-month",
+				"quantity": 100,
+				"unit": "GB-month",
+				"unitPriceUsd": 0.0245,
+				"monthlyCostUsd": 2.45,
+				"tier": "S3 Standard first 50 TB, eu-central-1"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-a-request",
+				"pricingModel": "Per request",
+				"quantity": 10000,
+				"unit": "requests",
+				"unitPriceUsd": 5.4e-6,
+				"monthlyCostUsd": 0.054,
+				"tier": "S3 PUT/COPY/POST/LIST, eu-central-1"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-b-request",
+				"pricingModel": "Per request",
+				"quantity": 100000,
+				"unit": "requests",
+				"unitPriceUsd": 3.0e-5,
+				"monthlyCostUsd": 3.0,
+				"tier": "S3 GET/SELECT etc., eu-central-1"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-hour",
+				"pricingModel": "Per LB-hour",
+				"quantity": 730,
+				"unit": "lb-hours",
+				"unitPriceUsd": 0.027,
+				"monthlyCostUsd": 19.71,
+				"tier": "Application Load Balancer hour, eu-central-1"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-lcu-hour",
+				"pricingModel": "Per LCU-hour",
+				"quantity": 730,
+				"unit": "lcu-hours",
+				"unitPriceUsd": 0.008,
+				"monthlyCostUsd": 5.84,
+				"tier": "ALB LCU, eu-central-1"
+			}
+		]
+	},
+
+	"baseline": {
+		"description": "Task 1 — startup baseline scaled to 1,000,000 active users using FLAGGED per-user coefficients. Unit prices direct from data; quantities ASSUMED.",
+		"users": 1000000,
+		"monthlyCostUsd": 65399.68,
+		"annualCostUsd": 784796.16,
+		"lineItems": [
+			{
+				"service": "EC2",
+				"sku": "t3.medium",
+				"pricingModel": "On-Demand per instance-hour",
+				"quantity": 146000,
+				"unit": "instance-hours",
+				"unitPriceUsd": 0.048,
+				"monthlyCostUsd": 7008.0,
+				"tier": "EC2 t3.medium On-Demand Linux, eu-central-1",
+				"qtyAssumption": "200 instances × 730h (5,000 users per t3.medium)"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-vcpu-hour",
+				"pricingModel": "Per vCPU-hour",
+				"quantity": 365000,
+				"unit": "vcpu-hours",
+				"unitPriceUsd": 0.053544,
+				"monthlyCostUsd": 19543.56,
+				"tier": "Fargate Linux vCPU, eu-central-1",
+				"qtyAssumption": "1000× baseline"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-memory-gb-hour",
+				"pricingModel": "Per GB-hour",
+				"quantity": 730000,
+				"unit": "gb-hours",
+				"unitPriceUsd": 0.00409,
+				"monthlyCostUsd": 2985.7,
+				"tier": "Fargate Linux memory, eu-central-1",
+				"qtyAssumption": "1000× baseline"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-ingest-gb",
+				"pricingModel": "Per GB ingested",
+				"quantity": 10000,
+				"unit": "GB",
+				"unitPriceUsd": 0.315,
+				"monthlyCostUsd": 3150.0,
+				"tier": "CloudWatch Logs IA ingest, eu-central-1",
+				"qtyAssumption": "10 MB/user/mo"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-storage-gb-month",
+				"pricingModel": "Per GB-month",
+				"quantity": 10000,
+				"unit": "GB-month",
+				"unitPriceUsd": 0.0324,
+				"monthlyCostUsd": 324.0,
+				"tier": "CloudWatch Logs storage, eu-central-1",
+				"qtyAssumption": "10 GB-mo / 1k users"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-storage-gb-month",
+				"pricingModel": "Per GB-month",
+				"quantity": 50000,
+				"unit": "GB-month",
+				"unitPriceUsd": 0.0245,
+				"monthlyCostUsd": 1225.0,
+				"tier": "S3 Standard first 50 TB, eu-central-1",
+				"qtyAssumption": "50 MB/user"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-a-request",
+				"pricingModel": "Per request",
+				"quantity": 100000000,
+				"unit": "requests",
+				"unitPriceUsd": 5.4e-6,
+				"monthlyCostUsd": 540.0,
+				"tier": "S3 PUT, eu-central-1",
+				"qtyAssumption": "100 PUT/user/mo"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-b-request",
+				"pricingModel": "Per request",
+				"quantity": 1000000000,
+				"unit": "requests",
+				"unitPriceUsd": 3.0e-5,
+				"monthlyCostUsd": 30000.0,
+				"tier": "S3 GET, eu-central-1",
+				"qtyAssumption": "1,000 GET/user/mo"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-hour",
+				"pricingModel": "Per LB-hour",
+				"quantity": 1460,
+				"unit": "lb-hours",
+				"unitPriceUsd": 0.027,
+				"monthlyCostUsd": 39.42,
+				"tier": "ALB hour, eu-central-1",
+				"qtyAssumption": "2 LBs HA"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-lcu-hour",
+				"pricingModel": "Per LCU-hour",
+				"quantity": 73000,
+				"unit": "lcu-hours",
+				"unitPriceUsd": 0.008,
+				"monthlyCostUsd": 584.0,
+				"tier": "ALB LCU, eu-central-1",
+				"qtyAssumption": "100× baseline"
+			}
+		],
+		"excluded_FLAGGED": [
+			{
+				"service": "Data Transfer Out",
+				"reason": "Not in estimate.json. ~200 TB egress @ ~$0.085/GB = ~$17,000/mo would add ~26% to bill."
+			},
+			{
+				"service": "RDS / ElastiCache / CloudFront / NAT / WAF / GuardDuty / Backup / Route53 / KMS",
+				"reason": "None in dataset. Real 1M-user prod stack would add $30k–$80k/mo."
+			}
+		]
+	},
+
+	"enterprise_reserved": {
+		"description": "Task 2 — same workload with 1-yr no-upfront RIs for EC2, Compute Savings Plan for Fargate, plus Enterprise Support. Discount % from AWS public knowledge (cutoff 2026-01); verification recommended.",
+		"discountAssumptions_FLAGGED": {
+			"ec2_ri_1yr_no_upfront_pct": 28,
+			"fargate_savings_plan_1yr_no_upfront_pct": 27,
+			"non_eligible": ["CloudWatch Logs", "S3", "ALB"],
+			"enterprise_support_pct_of_bill": 10,
+			"enterprise_support_min_monthly_usd": 15000
+		},
+		"monthlyCostUsd": 72354.54,
+		"annualCostUsd": 868254.48,
+		"lineItems": [
+			{
+				"service": "EC2",
+				"sku": "t3.medium",
+				"monthlyCostUsd": 5045.76,
+				"discountPct": 28,
+				"note": "1-yr no-upfront RI"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-vcpu-hour",
+				"monthlyCostUsd": 14266.8,
+				"discountPct": 27,
+				"note": "Compute Savings Plan 1-yr"
+			},
+			{
+				"service": "ECS Fargate",
+				"sku": "fargate-memory-gb-hour",
+				"monthlyCostUsd": 2179.56,
+				"discountPct": 27,
+				"note": "Compute Savings Plan 1-yr"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-ingest-gb",
+				"monthlyCostUsd": 3150.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "CloudWatch Logs",
+				"sku": "logs-storage-gb-month",
+				"monthlyCostUsd": 324.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-storage-gb-month",
+				"monthlyCostUsd": 1225.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-a-request",
+				"monthlyCostUsd": 540.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "S3",
+				"sku": "standard-class-b-request",
+				"monthlyCostUsd": 30000.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-hour",
+				"monthlyCostUsd": 39.42,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "ALB",
+				"sku": "alb-lcu-hour",
+				"monthlyCostUsd": 584.0,
+				"discountPct": 0,
+				"note": "Not RI/SP eligible"
+			},
+			{
+				"service": "AWS Support",
+				"sku": "enterprise",
+				"monthlyCostUsd": 15000.0,
+				"discountPct": 0,
+				"note": "Enterprise Support floor ($15k min); 10% of bill = $5,735 below threshold"
+			}
+		],
+		"deltaVsBaseline": {
+			"compute_savings_usd": -8045.14,
+			"support_added_usd": 15000.0,
+			"net_monthly_usd": 6954.86,
+			"net_pct": 10.63,
+			"insight_FLAGGED": "Enterprise Support floor exceeds RI/SP savings at this spend level. Net cost INCREASES until monthly AWS spend exceeds ~$150k where 10% support fee absorbs the floor."
+		}
+	},
+
+	"edp_scenarios": {
+		"description": "Task 3 — 3-year Enterprise Discount Program commit. Discounts apply to in-scope service spend; AWS Support and 3rd-party (Marketplace) excluded.",
+		"commitment": {
+			"years": 3,
+			"annualSpendBaselineUsd": 784796.16,
+			"totalCommitUsd": 2354388.48
+		},
+		"nonDiscountable_FLAGGED": [
+			"AWS Support (Enterprise/Business plans)",
+			"AWS Marketplace 3rd-party subscriptions",
+			"Reserved Instance upfront fees (depends on contract; some EDPs include, some don't)",
+			"Certain Free Tier and credits"
+		],
+		"low": {
+			"label": "Conservative",
+			"discountPct": 15,
+			"monthlyCostUsd": 55589.73,
+			"annualCostUsd": 667076.74,
+			"threeYearTotalUsd": 2001230.21,
+			"threeYearSavingsUsd": 353158.27
+		},
+		"mid": {
+			"label": "Mid",
+			"discountPct": 25,
+			"monthlyCostUsd": 49049.76,
+			"annualCostUsd": 588597.12,
+			"threeYearTotalUsd": 1765791.36,
+			"threeYearSavingsUsd": 588597.12
+		},
+		"high": {
+			"label": "Aggressive",
+			"discountPct": 35,
+			"monthlyCostUsd": 42509.79,
+			"annualCostUsd": 510117.5,
+			"threeYearTotalUsd": 1530352.51,
+			"threeYearSavingsUsd": 824035.97
+		},
+		"note_FLAGGED": "EDP discounts typically require minimum $1M/yr commit; at $785k/yr this workload is below typical EDP entry. Realistic discount = 0–15% via Private Pricing Addendum rather than full EDP. 25–35% scenarios assume aggregated spend across BU or upsell trajectory."
+	},
+
+	"summary": {
+		"stages": [
+			{
+				"stage": "Startup (Task 1)",
+				"monthlyUsd": 65399.68,
+				"annualUsd": 784796.16
+			},
+			{
+				"stage": "Enterprise + RI/SP (Task 2)",
+				"monthlyUsd": 72354.54,
+				"annualUsd": 868254.48
+			},
+			{
+				"stage": "EDP Conservative 15%",
+				"monthlyUsd": 55589.73,
+				"annualUsd": 667076.74
+			},
+			{
+				"stage": "EDP Mid 25%",
+				"monthlyUsd": 49049.76,
+				"annualUsd": 588597.12
+			},
+			{
+				"stage": "EDP Aggressive 35%",
+				"monthlyUsd": 42509.79,
+				"annualUsd": 510117.5
+			}
+		]
+	}
+}
