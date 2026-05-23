@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import {
-	ArrowRight,
 	Check,
 	Cloud,
 	CreditCard,
@@ -185,29 +184,22 @@ const integrations: Integration[] = [
 function ForecastLink({ enabled }: { enabled: boolean }) {
 	if (!enabled) {
 		return (
-			<div className="flex flex-col items-center">
-				<button
-					className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-[var(--line)] bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-700 shadow-[0_10px_24px_rgba(23,58,64,0.08)] dark:bg-slate-700 dark:text-white"
-					disabled
-					type="button"
-				>
-					Open live forecasts
-					<ArrowRight size={16} />
-				</button>
-				<p className="m-0 mt-2 text-xs font-bold text-[var(--sea-ink-soft)]">
-					Select at least one public pricing source.
-				</p>
-			</div>
+			<button
+				className="inline-flex cursor-not-allowed items-center justify-center rounded-lg border border-[var(--line)] bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-700 shadow-[0_10px_24px_rgba(23,58,64,0.08)] dark:bg-slate-700 dark:text-white"
+				disabled
+				type="button"
+			>
+				View Dashboard
+			</button>
 		);
 	}
 
 	return (
 		<a
-			className="inline-flex items-center justify-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white no-underline shadow-[0_18px_34px_rgba(23,58,64,0.18)] hover:text-white"
+			className="inline-flex items-center justify-center rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white no-underline shadow-[0_18px_34px_rgba(23,58,64,0.18)] hover:text-white"
 			href="/dashboard"
 		>
-			Open public-price forecasts
-			<ArrowRight size={16} />
+			View Dashboard
 		</a>
 	);
 }
@@ -268,7 +260,7 @@ function ConnectSources() {
 			<section className="mt-10 grid gap-8 lg:grid-cols-2">
 				{/* Expenses Column */}
 				<div>
-					<h2 className="mb-4 text-xl font-extrabold text-[var(--sea-ink)]">
+					<h2 className="mb-4 text-center text-xl font-extrabold text-[var(--sea-ink)]">
 						Expenses
 					</h2>
 					<div className="space-y-3">
@@ -317,12 +309,11 @@ function ConnectSources() {
 
 				{/* Funding/Revenue Column */}
 				<div>
-					<h2 className="mb-4 text-xl font-extrabold text-[var(--sea-ink)]">
+					<h2 className="mb-4 text-center text-xl font-extrabold text-[var(--sea-ink)]">
 						Funding/Revenue
 					</h2>
 					<div className="space-y-3">
 						{revenueIntegrations.map((integration) => {
-							const Icon = integration.icon;
 							const isConnected = connected.includes(integration.id);
 
 							return (
@@ -331,18 +322,10 @@ function ConnectSources() {
 									key={integration.id}
 								>
 									<div className="mb-4 flex items-start justify-between gap-3">
-										<div className="flex gap-3">
-											<div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] bg-white/70 text-[var(--lagoon-deep)] dark:bg-white/10">
-												<Icon size={19} />
-											</div>
-											<div>
-												<p className="m-0 text-xs font-extrabold uppercase text-[var(--kicker)]">
-													{integration.category}
-												</p>
-												<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
-													{integration.name}
-												</h3>
-											</div>
+										<div>
+											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
+												{integration.name}
+											</h3>
 										</div>
 										{isConnected ? (
 											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
