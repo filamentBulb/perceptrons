@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Slider } from "#/components/ui/slider";
 import {
+	cloudPricingEstimate,
+	cloudPricingProviderTotals,
+} from "#/data/cloud-pricing";
+import {
 	latestStartupSnapshot,
 	startupDashboardData,
 	startupDataset,
@@ -52,14 +56,18 @@ const CLOUD_SCALE_MODELS: Record<
 };
 
 const currentUsers = latestStartupSnapshot.mau;
-const currentCloudSpend = Object.values(
-	startupDashboardData.cloudExpenses,
-).reduce((sum, spend) => sum + spend, 0);
 const currentAiTokenSpend = startupDashboardData.aiTokenUsage.totalCostUsd;
-const currentCloudSpendFromSnapshots = latestStartupSnapshot.cloudSpendUsd;
-const currentCloudSpendDelta =
-	currentCloudSpend - currentCloudSpendFromSnapshots;
 const ONE_MILLION_USERS = 1000000;
+const CLOUD_PRICING_REFERENCE_USERS = 100000;
+const PRODUCTION_HEADROOM_MULTIPLIER = 2.5;
+const CLOUD_SCALE_EXPONENT = 0.85;
+const publicCloudBaseline =
+	cloudPricingEstimate.summary.currentMonthlyCost *
+	PRODUCTION_HEADROOM_MULTIPLIER;
+const publicCloudProviderTotal = cloudPricingProviderTotals.reduce(
+	(sum, provider) => sum + provider.monthlyCostUsd,
+	0,
+);
 const edpDiscountScenarios = [
 	{ stage: "EDP Conservative 15%", discount: 0.15 },
 	{ stage: "EDP Mid 25%", discount: 0.25 },
@@ -105,16 +113,21 @@ function ScaleCostSimulator({
 }) {
 	const comparisonTotals = CLOUD_PROVIDER_IDS.map((providerId) => {
 		const provider = CLOUD_SCALE_MODELS[providerId];
+		const publicProviderTotal = cloudPricingProviderTotals.find(
+			(total) => total.id === providerId,
+		)?.monthlyCostUsd;
+		const allocation =
+			publicCloudProviderTotal > 0 && typeof publicProviderTotal === "number"
+				? publicProviderTotal / publicCloudProviderTotal
+				: provider.allocation;
 
 		return {
 			id: providerId,
 			name: provider.name,
 			colorClass: provider.colorClass,
-			total: Math.round(tier.cloudTotal * provider.allocation),
+			total: Math.round(tier.cloudTotal * allocation),
 		};
 	});
-	const cloudSpendSyncsWithDashboard =
-		users === currentUsers && currentCloudSpendDelta === 0;
 
 	return (
 		<div className="island-shell rounded-2xl p-4 sm:p-6">
@@ -138,15 +151,18 @@ function ScaleCostSimulator({
 					<div className="mt-1 text-4xl font-extrabold text-[var(--sea-ink)]">
 						${formatMonthlyCost(tier.total)}/mo
 					</div>
+					<div className="mt-2 flex flex-wrap gap-2 text-xs font-extrabold">
+						<span className="rounded-lg border border-[var(--line)] bg-white/60 px-2 py-1 text-[var(--sea-ink)] dark:bg-white/10">
+							Cloud ${formatMonthlyCost(tier.cloudTotal)}
+						</span>
+						<span className="rounded-lg border border-[var(--line)] bg-white/60 px-2 py-1 text-[var(--sea-ink)] dark:bg-white/10">
+							AI ${formatMonthlyCost(tier.aiTokenTotal)}
+						</span>
+					</div>
 					<p className="m-0 mt-2 text-sm text-[var(--sea-ink-soft)]">
 						{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
 						concurrent / {tier.note}
 					</p>
-					{cloudSpendSyncsWithDashboard && (
-						<p className="m-0 mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-200">
-							Matches Cloud + AI dashboard bill.
-						</p>
-					)}
 				</div>
 				<div className="grid grid-cols-2 gap-2">
 					{comparisonTotals.map((provider) => (
@@ -216,9 +232,12 @@ function ScaleCostSimulator({
 
 function makeScaleTier(users: number): ScaleTier {
 	const normalizedUsers = Math.max(100, users);
-	const scaleRatio = normalizedUsers / currentUsers;
-	const cloudTotal = Math.round(currentCloudSpend * scaleRatio);
-	const aiTokenTotal = Math.round(currentAiTokenSpend * scaleRatio ** 1.08);
+	const cloudScaleRatio = normalizedUsers / CLOUD_PRICING_REFERENCE_USERS;
+	const aiScaleRatio = normalizedUsers / currentUsers;
+	const cloudTotal = Math.round(
+		publicCloudBaseline * cloudScaleRatio ** CLOUD_SCALE_EXPONENT,
+	);
+	const aiTokenTotal = Math.round(currentAiTokenSpend * aiScaleRatio ** 1.08);
 	const total = cloudTotal + aiTokenTotal;
 
 	return {
@@ -233,29 +252,40 @@ function makeScaleTier(users: number): ScaleTier {
 		aiTokenTotal,
 		note:
 			normalizedUsers === currentUsers
-				? "current dashboard baseline"
-				: "AI tokens scale slightly faster than traffic in this model",
+				? "public cloud baseline plus production headroom"
+				: "cloud uses public-pricing scale; AI tokens scale slightly faster",
 		breakdown: splitScaleCost(cloudTotal, aiTokenTotal),
 	};
 }
 
 function splitScaleCost(cloudTotal: number, aiTokenTotal: number) {
-	const categories = Object.entries(startupDashboardData.cloudExpenses);
-	const cloudBreakdown = categories.map(([key, currentCost], index) => {
-		const isLast = index === categories.length - 1;
+	const cloudRows = cloudPricingProviderTotals.map((provider) => ({
+		key: provider.id,
+		label: provider.label,
+		currentCost: provider.monthlyCostUsd,
+	}));
+	const cloudBreakdown = cloudRows.map((provider, index) => {
+		const isLast = index === cloudRows.length - 1;
 		const allocatedCost = isLast
 			? cloudTotal -
-				categories
+				cloudRows
 					.slice(0, -1)
 					.reduce(
-						(sum, [, cost]) =>
-							sum + Math.round(cloudTotal * (cost / currentCloudSpend)),
+						(sum, row) =>
+							sum +
+							Math.round(
+								cloudTotal *
+									(row.currentCost / Math.max(publicCloudProviderTotal, 1)),
+							),
 						0,
 					)
-			: Math.round(cloudTotal * (currentCost / currentCloudSpend));
+			: Math.round(
+					cloudTotal *
+						(provider.currentCost / Math.max(publicCloudProviderTotal, 1)),
+				);
 
 		return {
-			label: cloudExpenseLabel(key),
+			label: provider.label,
 			cost: allocatedCost,
 		};
 	});
@@ -272,20 +302,6 @@ function splitScaleCost(cloudTotal: number, aiTokenTotal: number) {
 
 function formatMonthlyCost(value: number) {
 	return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
-}
-
-function cloudExpenseLabel(key: string) {
-	const labels: Record<string, string> = {
-		computeGpuUsd: "Compute/GPU",
-		databasesUsd: "Databases",
-		storageUsd: "Storage",
-		bandwidthCdnUsd: "Bandwidth/CDN",
-		observabilityLoggingUsd: "Observability/logging",
-		aiApisUsd: "AI APIs",
-		miscInfraUsd: "Misc infra",
-	};
-
-	return labels[key] ?? key;
 }
 
 const STAGE_COLORS: Record<number, string> = {
