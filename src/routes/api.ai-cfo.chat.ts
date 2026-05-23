@@ -8,6 +8,10 @@ import {
 	formatPricingUsd,
 	providerLabel,
 } from "#/data/cloud-pricing";
+import {
+	buildStartupDatasetContext,
+	startupDataset,
+} from "#/data/startup-dataset";
 
 type ChatMessage = {
 	role: "assistant" | "user";
@@ -247,8 +251,7 @@ function buildSystemPrompt(
 	connectedSourceIds: string[],
 ) {
 	const connected = new Set(connectedSourceIds);
-	const latestUserMessage =
-		messages.findLast((message) => message.role === "user")?.content ?? "";
+	const latestUserMessage = latestUserMessageContent(messages);
 	const isUserGrowthQuestion =
 		latestUserMessage.trim().toLowerCase() ===
 		"what happens if our users grow from 100k to 1 million?";
@@ -275,12 +278,14 @@ Signals:
 ${events}`;
 		})
 		.join("\n\n");
+	const startupDatasetContext = buildStartupDatasetContext();
 	const cloudPricingContext = buildCloudPricingContext(isUserGrowthQuestion);
 	const growthQuestionInstructions = isUserGrowthQuestion
 		? `
 Exact question mode:
 - The user asked: "What happens if our users grow from 100k to 1 million?"
 - Assume the current plan is vertical scaling: the company keeps buying larger single machines/plans and usage grows roughly 10x with users.
+- Start the answer with burn rate and runway impact in months and days before any scaling advice. Use current cash, minimum reserve, revenue, payroll, and cloud/vendor outflow from the baseline; clearly label the 1M-user runway as directional.
 - Explain that vertical scaling is simpler but can make the bill jump close to 10x and creates a single capacity ceiling.
 - Give horizontal scaling suggestions: split load across more smaller servers, autoscale workers, cache more traffic at the edge, move batch jobs off peak hours, and set monthly spend alerts.
 - Include a compact cost comparison using cloud-pricing assumptions: current public-pricing baseline, 10x vertical estimate, and a horizontal estimate that targets 15-30% lower than the pure 10x case through autoscaling/cache/batch scheduling.
@@ -290,7 +295,7 @@ Exact question mode:
 
 	return `You are Runway AI CFO, a concise finance and infrastructure advisor for a startup.
 
-Use the full provider and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. Do not invent bank balances, provider names, or precise figures beyond this context unless you clearly label them as assumptions.
+Use the full startup dataset, provider, and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat the structured startup dataset as the canonical demo company numbers. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. If older provider context conflicts with the structured startup dataset, use the structured startup dataset. Do not invent bank balances, provider names, or precise figures beyond this context unless you clearly label them as assumptions.
 
 Answer in markdown. Prefer:
 - 4-7 short bullets maximum
@@ -312,14 +317,19 @@ Pricing assumptions:
 ${growthQuestionInstructions}
 
 Baseline:
-- Current operating cash: $410k
-- Estimated runway: 7.2 months
-- Monthly revenue: $137k Stripe plus $238k banking inflow context
-- Monthly infrastructure/cloud vendor outflow: about $66k
-- Payroll: $102k/month
+- Current operating cash: ${formatStartupUsd(startupDataset.company.currentCashUsd)}
+- Estimated runway: ${startupDataset.businessMetrics.runwayMonths} months
+- Monthly revenue/MRR: ${formatStartupUsd(startupDataset.businessMetrics.mrrUsd)}
+- Monthly cloud spend: ${formatStartupUsd(latestCloudSpend())}
+- Total monthly operating costs: ${formatStartupUsd(startupDataset.businessMetrics.monthlyOperatingCostsUsd)}
+- Net burn: ${formatStartupUsd(startupDataset.businessMetrics.netBurnUsd)}/month
+- Payroll: ${formatStartupUsd(startupDataset.businessMetrics.payrollUsd)}/month
 - Minimum cash reserve target: $120k
 
 Connected source IDs: ${connectedSourceIds.length ? connectedSourceIds.join(", ") : "none"}
+
+Structured startup dataset context:
+${startupDatasetContext}
 
 Cloud pricing catalogue context:
 ${cloudPricingContext}
@@ -369,6 +379,29 @@ Provider baseline:
 ${providerTotals}
 Largest public-pricing assumptions:
 ${topLines}`;
+}
+
+function latestUserMessageContent(messages: ChatMessage[]) {
+	for (let index = messages.length - 1; index >= 0; index--) {
+		const message = messages[index];
+		if (message?.role === "user") return message.content;
+	}
+
+	return "";
+}
+
+function latestCloudSpend() {
+	return startupDataset.monthlySnapshots[
+		startupDataset.monthlySnapshots.length - 1
+	].cloudSpendUsd;
+}
+
+function formatStartupUsd(value: number) {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		maximumFractionDigits: 0,
+	}).format(value);
 }
 
 function plainServiceName(service: string) {
