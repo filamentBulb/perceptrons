@@ -3,13 +3,14 @@ import {
 	ArrowDownRight,
 	ArrowRight,
 	ArrowUpRight,
+	ChevronDown,
 	Cloud,
 	CreditCard,
 	DollarSign,
 	Landmark,
 	TrendingUp,
 } from "lucide-react";
-import { type ElementType, useState } from "react";
+import { type ElementType, useEffect, useRef, useState } from "react";
 import { Slider } from "#/components/ui/slider";
 import {
 	latestStartupSnapshot,
@@ -25,6 +26,58 @@ const monthlyData = startupDashboardData.monthlyTrend.map((point) => ({
 	funding: point.funding * 1000,
 	expenses: point.expenses * 1000,
 }));
+
+// Generate future months data starting from May
+const MONTH_NAMES = [
+	"May",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec",
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+];
+
+function generateFutureMonthsData(monthCount: number) {
+	const result = [];
+	// Get the last month's data (May) from historical data
+	const lastMonth = monthlyData[monthlyData.length - 1];
+
+	// Calculate average growth rates from historical data
+	const revenueGrowthRate =
+		monthlyData.length >= 2
+			? (lastMonth.revenue - monthlyData[0].revenue) /
+				monthlyData[0].revenue /
+				(monthlyData.length - 1)
+			: 0.15; // default 15% per month
+	const expenseGrowthRate =
+		monthlyData.length >= 2
+			? (lastMonth.expenses - monthlyData[0].expenses) /
+				monthlyData[0].expenses /
+				(monthlyData.length - 1)
+			: 0.12; // default 12% per month
+
+	for (let i = 0; i < monthCount; i++) {
+		const monthName = MONTH_NAMES[i];
+		result.push({
+			month: monthName,
+			revenue: Math.round(
+				lastMonth.revenue * Math.pow(1 + revenueGrowthRate, i),
+			),
+			funding: 0, // No future funding projections
+			expenses: Math.round(
+				lastMonth.expenses * Math.pow(1 + expenseGrowthRate, i),
+			),
+		});
+	}
+
+	return result;
+}
 
 const cloudCategories = Object.entries(startupDashboardData.cloudExpenses).map(
 	([id, spend]) => ({
@@ -108,23 +161,29 @@ function App() {
 	const [selectedMetric, setSelectedMetric] = useState<"revenue" | "expenses">(
 		"revenue",
 	);
+	const [selectedMonths, setSelectedMonths] = useState<number>(1);
 
 	const totalCloudSpend = currentCloudSpend;
 	const latestFundingRound = startupDataset.fundingRounds[0];
 	const fundingRaised = startupDataset.company.fundingRaisedUsd;
 	const spikeScenario = startupDataset.dangerScenarios[0];
 
+	// Generate future months data based on selected month count
+	const filteredMonthlyData = generateFutureMonthsData(selectedMonths);
+
 	const maxValue = Math.max(
-		...monthlyData.map((point) => Math.max(point.revenue, point.expenses)),
+		...filteredMonthlyData.map((point) =>
+			Math.max(point.revenue, point.expenses),
+		),
 	);
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="mb-8">
 				<div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-					<div className="flex-1 text-center">
+					<div className="flex-1">
 						<h1 className="display-title m-0 text-3xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-5xl">
-							AI Runway CFO Dashboard
+							Dashboard
 						</h1>
 					</div>
 					<a
@@ -172,12 +231,15 @@ function App() {
 				<div className="island-shell rounded-2xl p-4 sm:p-6">
 					<div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
 						<div>
-							<p className="island-kicker mb-2">5-month trend</p>
 							<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
 								Revenue vs Expenses
 							</h2>
 						</div>
-						<div className="flex gap-2">
+						<div className="flex flex-wrap gap-2">
+							<MonthRangeSelector
+								value={selectedMonths}
+								onChange={setSelectedMonths}
+							/>
 							<button
 								type="button"
 								onClick={() => setSelectedMetric("revenue")}
@@ -205,7 +267,7 @@ function App() {
 
 					<div className="relative h-80">
 						<RevenueExpenseChart
-							data={monthlyData}
+							data={filteredMonthlyData}
 							maxValue={maxValue}
 							selectedMetric={selectedMetric}
 						/>
@@ -365,7 +427,7 @@ function App() {
 }
 
 function CloudProviderScaleSlider() {
-	const [users, setUsers] = useState(currentUsers);
+	const [users, setUsers] = useState<number>(currentUsers);
 	const tier = makeScaleTier(users);
 	const comparisonTotals = CLOUD_PROVIDER_IDS.map((providerId) => {
 		const provider = CLOUD_SCALE_MODELS[providerId];
@@ -563,12 +625,86 @@ function RunwayRow({
 	);
 }
 
+function MonthRangeSelector({
+	value,
+	onChange,
+}: {
+	value: number;
+	onChange: (value: number) => void;
+}) {
+	const [isOpen, setIsOpen] = useState(false);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		}
+
+		if (isOpen) {
+			document.addEventListener("mousedown", handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, [isOpen]);
+
+	return (
+		<div className="relative" ref={dropdownRef}>
+			<button
+				type="button"
+				onClick={() => setIsOpen(!isOpen)}
+				className="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-1.5 text-sm font-bold text-[var(--sea-ink)] transition-colors hover:bg-white/75 dark:hover:bg-white/10"
+			>
+				{value} {value === 1 ? "Month" : "Months"}
+				<ChevronDown
+					size={16}
+					className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+				/>
+			</button>
+			{isOpen && (
+				<div className="absolute right-0 top-full z-10 mt-2 max-h-60 w-32 overflow-y-auto rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] p-2 shadow-lg">
+					<div className="space-y-1">
+						{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+							<button
+								key={month}
+								type="button"
+								onClick={() => {
+									onChange(month);
+									setIsOpen(false);
+								}}
+								className={`block w-full rounded-md px-3 py-1.5 text-left text-sm font-bold transition-colors hover:bg-[var(--lagoon)]/20 ${
+									value === month
+										? "bg-[var(--lagoon)]/20 text-[var(--lagoon-deep)]"
+										: "text-[var(--sea-ink)]"
+								}`}
+							>
+								{month} {month === 1 ? "Month" : "Months"}
+							</button>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function RevenueExpenseChart({
 	data,
 	maxValue,
 	selectedMetric,
 }: {
-	data: typeof monthlyData;
+	data: Array<{
+		month: string;
+		revenue: number;
+		funding: number;
+		expenses: number;
+	}>;
 	maxValue: number;
 	selectedMetric: "revenue" | "expenses";
 }) {
