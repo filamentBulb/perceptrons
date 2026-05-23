@@ -261,7 +261,7 @@ function ConnectSources() {
 				{/* Expenses Column */}
 				<div>
 					<h2 className="mb-3 text-center text-xl font-extrabold text-[var(--sea-ink)]">
-						Expenses
+						Cloud
 					</h2>
 					<div className="space-y-2">
 						{expenseIntegrations.map((integration) => {
