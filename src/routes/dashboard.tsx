@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { type ElementType, useState } from "react";
 import { Slider } from "#/components/ui/slider";
+import { awsCostAnalysisMeta, awsCostStageSummary } from "#/data/cost-analysis";
 import {
 	latestStartupSnapshot,
 	startupDashboardData,
@@ -343,6 +344,10 @@ function App() {
 			</section>
 
 			<section className="mt-8">
+				<AwsCostScenarios />
+			</section>
+
+			<section className="mt-8">
 				<div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 sm:p-6">
 					<div className="flex gap-3">
 						<TrendingUp className="shrink-0 text-red-600" size={24} />
@@ -483,6 +488,58 @@ function CloudProviderScaleSlider() {
 						</div>
 					);
 				})}
+			</div>
+		</div>
+	);
+}
+
+const STAGE_COLORS: Record<number, string> = {
+	0: "border-[var(--line)] bg-white/40 dark:bg-white/5",
+	1: "border-amber-500/30 bg-amber-500/5",
+	2: "border-emerald-500/20 bg-emerald-500/5",
+	3: "border-emerald-500/30 bg-emerald-500/10",
+	4: "border-emerald-600/40 bg-emerald-500/15",
+};
+
+function formatUsd(n: number) {
+	if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+	if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+	return `$${n.toFixed(0)}`;
+}
+
+function AwsCostScenarios() {
+	const meta = awsCostAnalysisMeta;
+
+	return (
+		<div className="island-shell rounded-2xl p-4 sm:p-6">
+			<div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+				<div>
+					<p className="island-kicker mb-2">AWS · 1,000,000 users</p>
+					<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
+						Cost Scenarios
+					</h2>
+				</div>
+				<p className="m-0 text-xs text-[var(--sea-ink-soft)]">
+					Region {meta.region} · {meta.pricingSource}
+				</p>
+			</div>
+
+			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+				{awsCostStageSummary.map((s, i) => (
+					<div
+						key={s.stage}
+						className={`rounded-xl border p-4 ${STAGE_COLORS[i] ?? STAGE_COLORS[0]}`}
+					>
+						<p className="island-kicker mb-2 text-[10px]">{s.stage}</p>
+						<p className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
+							{formatUsd(s.monthlyUsd)}
+						</p>
+						<p className="m-0 text-xs text-[var(--sea-ink-soft)]">/mo</p>
+						<p className="m-0 mt-2 text-xs font-bold text-[var(--sea-ink-soft)]">
+							{formatUsd(s.annualUsd)} / yr
+						</p>
+					</div>
+				))}
 			</div>
 		</div>
 	);
