@@ -122,20 +122,10 @@ function App() {
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="mb-8">
 				<div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-					<div>
-						<p className="island-kicker mb-2">
-							{startupDataset.company.stage} AI SaaS forecast
-						</p>
-						<h1 className="display-title m-0 max-w-3xl text-3xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-5xl">
+					<div className="flex-1 text-center">
+						<h1 className="display-title m-0 text-3xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-5xl">
 							AI Runway CFO Dashboard
 						</h1>
-						<p className="mt-2 text-[var(--sea-ink-soft)]">
-							{latestStartupSnapshot.mau.toLocaleString()} MAU,{" "}
-							{startupDataset.productMetrics.payingCustomers.toLocaleString()}{" "}
-							paying customers, and{" "}
-							{startupDataset.productMetrics.requestsPerMonth.toLocaleString()}{" "}
-							requests/month.
-						</p>
 					</div>
 					<a
 						href="/"
