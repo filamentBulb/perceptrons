@@ -186,7 +186,7 @@ const integrations: Integration[] = [
 function ForecastLink({ enabled }: { enabled: boolean }) {
 	if (!enabled) {
 		return (
-			<div>
+			<div className="flex flex-col items-center">
 				<button
 					className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-[var(--line)] bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-700 shadow-[0_10px_24px_rgba(23,58,64,0.08)] dark:bg-slate-700 dark:text-white"
 					disabled
@@ -204,7 +204,7 @@ function ForecastLink({ enabled }: { enabled: boolean }) {
 
 	return (
 		<a
-			className="inline-flex items-center justify-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white no-underline shadow-[0_18px_34px_rgba(23,58,64,0.18)]"
+			className="inline-flex items-center justify-center gap-2 rounded-lg border border-[rgba(23,58,64,0.18)] bg-[var(--sea-ink)] px-4 py-2.5 text-sm font-extrabold text-white no-underline shadow-[0_18px_34px_rgba(23,58,64,0.18)] hover:text-white"
 			href="/dashboard"
 		>
 			Open public-price forecasts
@@ -245,8 +245,8 @@ function ConnectSources() {
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
-			<section className="mb-10">
-				<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
+			<section className="mb-10 text-center">
+				<h1 className="display-title mb-5 text-3xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-4xl">
 					Choose public cloud pricing sources.
 				</h1>
 				<ForecastLink enabled={canOpenForecasts} />
