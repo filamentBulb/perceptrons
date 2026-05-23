@@ -321,6 +321,8 @@ Baseline:
 - Estimated runway: ${startupDataset.businessMetrics.runwayMonths} months
 - Monthly revenue/MRR: ${formatStartupUsd(startupDataset.businessMetrics.mrrUsd)}
 - Monthly cloud spend: ${formatStartupUsd(latestCloudSpend())}
+- Monthly AI token spend: ${formatStartupUsd(startupDataset.aiTokenUsage.totalCostUsd)}
+- Monthly AI token usage: ${formatStartupNumber(startupDataset.aiTokenUsage.totalTokens)} tokens across ${startupDataset.company.employees} employees
 - Total monthly operating costs: ${formatStartupUsd(startupDataset.businessMetrics.monthlyOperatingCostsUsd)}
 - Net burn: ${formatStartupUsd(startupDataset.businessMetrics.netBurnUsd)}/month
 - Payroll: ${formatStartupUsd(startupDataset.businessMetrics.payrollUsd)}/month
@@ -400,6 +402,12 @@ function formatStartupUsd(value: number) {
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: "USD",
+		maximumFractionDigits: 0,
+	}).format(value);
+}
+
+function formatStartupNumber(value: number) {
+	return new Intl.NumberFormat("en-US", {
 		maximumFractionDigits: 0,
 	}).format(value);
 }
@@ -610,6 +618,42 @@ const AI_CFO_CONTEXT = {
 				"Cache hit rate is 82%; target is 91%",
 				"Workers invocations doubled after API launch",
 				"R2 egress remains cheaper than S3 transfer",
+			],
+		},
+		{
+			id: "ai-tokens",
+			name: "AI Tokens",
+			category: "AI Tokens",
+			headline:
+				"OpenAI and Anthropic token costs are tracked as a runway driver.",
+			monthlySpend: "$16,700/mo",
+			services: [
+				{
+					name: "OpenAI",
+					count: "86.0M tokens",
+					amount: "$11,800",
+					trend: "+39%",
+					detail: "Customer copilots, CFO chat drafts, embeddings",
+				},
+				{
+					name: "Anthropic",
+					count: "35.0M tokens",
+					amount: "$4,900",
+					trend: "+31%",
+					detail: "Long-context analysis and finance memo generation",
+				},
+				{
+					name: "Employee usage",
+					count: "28 employees",
+					amount: "$596 per employee",
+					trend: "+36%",
+					detail: "Blended AI token cost per employee per month",
+				},
+			],
+			events: [
+				"AI token spend is $16.7k/month across OpenAI and Anthropic",
+				"OpenAI accounts for about 71% of AI token spend",
+				"Token usage is growing faster than employee count",
 			],
 		},
 		{

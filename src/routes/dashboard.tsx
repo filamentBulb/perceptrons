@@ -3,6 +3,7 @@ import {
 	ArrowDownRight,
 	ArrowRight,
 	ArrowUpRight,
+	Bot,
 	ChevronDown,
 	Cloud,
 	CreditCard,
@@ -67,13 +68,9 @@ function generateFutureMonthsData(monthCount: number) {
 		const monthName = MONTH_NAMES[i];
 		result.push({
 			month: monthName,
-			revenue: Math.round(
-				lastMonth.revenue * Math.pow(1 + revenueGrowthRate, i),
-			),
+			revenue: Math.round(lastMonth.revenue * (1 + revenueGrowthRate) ** i),
 			funding: 0, // No future funding projections
-			expenses: Math.round(
-				lastMonth.expenses * Math.pow(1 + expenseGrowthRate, i),
-			),
+			expenses: Math.round(lastMonth.expenses * (1 + expenseGrowthRate) ** i),
 		});
 	}
 
@@ -88,6 +85,15 @@ const cloudCategories = Object.entries(startupDashboardData.cloudExpenses).map(
 		growth: cloudGrowthLabel(id),
 	}),
 );
+const aiTokenCategories = startupDashboardData.aiTokenUsage.services.map(
+	(service) => ({
+		id: service.id,
+		name: service.name,
+		spend: service.costUsd,
+		growth: `${(service.tokensUsed / 1000000).toFixed(1)}M tokens/mo · ${service.usage}`,
+	}),
+);
+const expenseCategories = [...cloudCategories, ...aiTokenCategories];
 
 const CLOUD_PROVIDER_IDS = ["aws", "gcp", "azure", "cloudflare"] as const;
 type CloudProviderId = (typeof CLOUD_PROVIDER_IDS)[number];
@@ -97,6 +103,8 @@ type ScaleTier = {
 	dau: number;
 	concurrent: number;
 	total: number;
+	cloudTotal: number;
+	aiTokenTotal: number;
 	note: string;
 	breakdown: Array<{ label: string; cost: number }>;
 };
@@ -131,6 +139,9 @@ const currentUsers = latestStartupSnapshot.mau;
 const currentCloudSpend = Object.values(
 	startupDashboardData.cloudExpenses,
 ).reduce((sum, spend) => sum + spend, 0);
+const currentAiTokenSpend = startupDashboardData.aiTokenUsage.totalCostUsd;
+const currentAiTokenUsage = startupDashboardData.aiTokenUsage.totalTokens;
+const currentCostDriverSpend = currentCloudSpend + currentAiTokenSpend;
 const currentCloudSpendFromSnapshots = latestStartupSnapshot.cloudSpendUsd;
 const currentCloudSpendDelta =
 	currentCloudSpend - currentCloudSpendFromSnapshots;
@@ -140,6 +151,7 @@ const currentMarketingSpend = startupDataset.businessMetrics.marketingSpendUsd;
 const currentSaasToolsSpend = startupDataset.businessMetrics.saasToolsUsd;
 const currentExpenses =
 	currentCloudSpend +
+	currentAiTokenSpend +
 	currentPayroll +
 	currentMarketingSpend +
 	currentSaasToolsSpend;
@@ -162,7 +174,7 @@ function App() {
 	const [selectedMetric, setSelectedMetric] = useState<"revenue" | "expenses">(
 		"revenue",
 	);
-	const [selectedMonths, setSelectedMonths] = useState<number>(1);
+	const [selectedMonths, setSelectedMonths] = useState<number>(6);
 
 	const totalCloudSpend = currentCloudSpend;
 	const latestFundingRound = startupDataset.fundingRounds[0];
@@ -196,7 +208,7 @@ function App() {
 					</a>
 				</div>
 
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
 					<MetricCard
 						icon={CreditCard}
 						label="Monthly Revenue"
@@ -209,6 +221,13 @@ function App() {
 						label="Cloud Expenses"
 						value={`$${(totalCloudSpend / 1000).toFixed(1)}k`}
 						change={`${formatSignedPercent(cloudSpendGrowthPct)} MoM`}
+						trend="down"
+					/>
+					<MetricCard
+						icon={Bot}
+						label="AI Usage"
+						value={`${(currentAiTokenUsage / 1000000).toFixed(1)}M tokens · $${(currentAiTokenSpend / 1000).toFixed(1)}k`}
+						change="OpenAI + Anthropic"
 						trend="down"
 					/>
 					<MetricCard
@@ -282,11 +301,11 @@ function App() {
 						<div className="mb-4">
 							<p className="island-kicker mb-2">Expense breakdown</p>
 							<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-								Cloud Cost Categories
+								Cloud & AI Cost Categories
 							</h2>
 						</div>
 						<div className="space-y-3">
-							{cloudCategories.map((category) => (
+							{expenseCategories.map((category) => (
 								<div
 									key={category.id}
 									className="rounded-lg border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5"
@@ -303,7 +322,7 @@ function App() {
 										<div
 											className="h-full rounded-full bg-[var(--lagoon-deep)]"
 											style={{
-												width: `${(category.spend / totalCloudSpend) * 100}%`,
+												width: `${(category.spend / currentCostDriverSpend) * 100}%`,
 											}}
 										/>
 									</div>
@@ -315,7 +334,8 @@ function App() {
 						</div>
 						<div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
 							<p className="m-0 text-sm font-bold text-emerald-700 dark:text-emerald-200">
-								Total Cloud Spend: ${(totalCloudSpend / 1000).toFixed(1)}k/mo
+								Total Cloud + AI Spend: $
+								{(currentCostDriverSpend / 1000).toFixed(1)}k/mo
 							</p>
 						</div>
 					</div>
@@ -346,6 +366,11 @@ function App() {
 							<RunwayRow
 								label="Cloud Expenses"
 								value={`-$${(currentCloudSpend / 1000).toFixed(1)}k`}
+								danger
+							/>
+							<RunwayRow
+								label="AI Token Spend"
+								value={`-$${(currentAiTokenSpend / 1000).toFixed(1)}k`}
 								danger
 							/>
 							<RunwayRow
@@ -441,7 +466,7 @@ function CloudProviderScaleSlider() {
 			id: providerId,
 			name: provider.name,
 			colorClass: provider.colorClass,
-			total: Math.round(tier.total * provider.allocation),
+			total: Math.round(tier.cloudTotal * provider.allocation),
 		};
 	});
 	const cloudSpendSyncsWithDashboard =
@@ -464,7 +489,7 @@ function CloudProviderScaleSlider() {
 			<div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]">
 				<div className="rounded-xl border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5">
 					<p className="m-0 text-sm font-bold text-[var(--sea-ink-soft)]">
-						Combined cloud providers at {tier.users.toLocaleString()} users
+						Cloud and AI vendors at {tier.users.toLocaleString()} users
 					</p>
 					<div className="mt-1 text-4xl font-extrabold text-[var(--sea-ink)]">
 						${formatMonthlyCost(tier.total)}/mo
@@ -475,7 +500,7 @@ function CloudProviderScaleSlider() {
 					</p>
 					{cloudSpendSyncsWithDashboard && (
 						<p className="m-0 mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-200">
-							Matches Cloud Expenses dashboard bill.
+							Matches Cloud + AI dashboard bill.
 						</p>
 					)}
 				</div>
@@ -793,19 +818,19 @@ function RevenueExpenseChart({
 							onBlur={() => setHoveredIndex(null)}
 						>
 							{isHovered && (
-								<div className="absolute -top-20 left-1/2 z-10 -translate-x-1/2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] p-3 shadow-lg">
+								<div className="absolute -top-20 left-1/2 z-10 w-max min-w-44 -translate-x-1/2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] p-3 text-left shadow-lg">
 									<p className="m-0 mb-1 text-xs font-bold text-[var(--sea-ink-soft)]">
 										{item.month}
 									</p>
-									<p className="m-0 text-sm font-bold text-emerald-600">
+									<p className="m-0 whitespace-nowrap text-sm font-bold text-emerald-600">
 										Revenue: ${(item.revenue / 1000).toFixed(1)}k
 									</p>
 									{item.funding > 0 && (
-										<p className="m-0 text-sm font-bold text-blue-600">
+										<p className="m-0 whitespace-nowrap text-sm font-bold text-blue-600">
 											Funding: ${(item.funding / 1000000).toFixed(1)}M
 										</p>
 									)}
-									<p className="m-0 text-sm font-bold text-red-600">
+									<p className="m-0 whitespace-nowrap text-sm font-bold text-red-600">
 										Expenses: ${(item.expenses / 1000).toFixed(1)}k
 									</p>
 								</div>
@@ -840,7 +865,9 @@ function RevenueExpenseChart({
 function makeScaleTier(users: number): ScaleTier {
 	const normalizedUsers = Math.max(100, users);
 	const scaleRatio = normalizedUsers / currentUsers;
-	const total = Math.round(currentCloudSpend * scaleRatio);
+	const cloudTotal = Math.round(currentCloudSpend * scaleRatio);
+	const aiTokenTotal = Math.round(currentAiTokenSpend * scaleRatio ** 1.08);
+	const total = cloudTotal + aiTokenTotal;
 
 	return {
 		users: normalizedUsers,
@@ -850,35 +877,45 @@ function makeScaleTier(users: number): ScaleTier {
 		),
 		concurrent: Math.max(1, Math.round(normalizedUsers * 0.005)),
 		total,
+		cloudTotal,
+		aiTokenTotal,
 		note:
 			normalizedUsers === currentUsers
 				? "current dashboard baseline"
-				: "linear estimate from current MAU and cloud bill",
-		breakdown: splitScaleCost(total),
+				: "AI tokens scale slightly faster than traffic in this model",
+		breakdown: splitScaleCost(cloudTotal, aiTokenTotal),
 	};
 }
 
-function splitScaleCost(total: number) {
+function splitScaleCost(cloudTotal: number, aiTokenTotal: number) {
 	const categories = Object.entries(startupDashboardData.cloudExpenses);
-
-	return categories.map(([key, currentCost], index) => {
+	const cloudBreakdown = categories.map(([key, currentCost], index) => {
 		const isLast = index === categories.length - 1;
 		const allocatedCost = isLast
-			? total -
+			? cloudTotal -
 				categories
 					.slice(0, -1)
 					.reduce(
 						(sum, [, cost]) =>
-							sum + Math.round(total * (cost / currentCloudSpend)),
+							sum + Math.round(cloudTotal * (cost / currentCloudSpend)),
 						0,
 					)
-			: Math.round(total * (currentCost / currentCloudSpend));
+			: Math.round(cloudTotal * (currentCost / currentCloudSpend));
 
 		return {
 			label: cloudExpenseLabel(key),
 			cost: allocatedCost,
 		};
 	});
+
+	const aiBreakdown = startupDashboardData.aiTokenUsage.services.map(
+		(service) => ({
+			label: service.name,
+			cost: Math.round(aiTokenTotal * (service.costUsd / currentAiTokenSpend)),
+		}),
+	);
+
+	return [...cloudBreakdown, ...aiBreakdown];
 }
 
 function formatMonthlyCost(value: number) {

@@ -24,6 +24,8 @@ export const startupDataset = {
 			dau: 8000,
 			revenueUsd: 38000,
 			cloudSpendUsd: 14000,
+			aiTokenSpendUsd: 2600,
+			aiTokensUsed: 18400000,
 			fundingUsd: 0,
 		},
 		{
@@ -32,6 +34,8 @@ export const startupDataset = {
 			dau: 11000,
 			revenueUsd: 49000,
 			cloudSpendUsd: 19000,
+			aiTokenSpendUsd: 4100,
+			aiTokensUsed: 29100000,
 			fundingUsd: 0,
 		},
 		{
@@ -40,6 +44,8 @@ export const startupDataset = {
 			dau: 16000,
 			revenueUsd: 71000,
 			cloudSpendUsd: 31000,
+			aiTokenSpendUsd: 6800,
+			aiTokensUsed: 48600000,
 			fundingUsd: 4000000,
 		},
 		{
@@ -48,6 +54,8 @@ export const startupDataset = {
 			dau: 24000,
 			revenueUsd: 102000,
 			cloudSpendUsd: 54000,
+			aiTokenSpendUsd: 10400,
+			aiTokensUsed: 74200000,
 			fundingUsd: 0,
 		},
 		{
@@ -56,9 +64,37 @@ export const startupDataset = {
 			dau: 38000,
 			revenueUsd: 146000,
 			cloudSpendUsd: 97000,
+			aiTokenSpendUsd: 16700,
+			aiTokensUsed: 121000000,
 			fundingUsd: 0,
 		},
 	],
+	aiTokenUsage: {
+		totalTokens: 121000000,
+		totalCostUsd: 16700,
+		tokensPerEmployee: 4321429,
+		costPerEmployeeUsd: 596,
+		services: [
+			{
+				id: "openai",
+				name: "OpenAI",
+				modelMix: "GPT-4.1, GPT-4o mini, embeddings",
+				tokensUsed: 86000000,
+				costUsd: 11800,
+				trendPct: 39,
+				usage: "Customer copilots, CFO chat drafts, embeddings",
+			},
+			{
+				id: "anthropic",
+				name: "Anthropic",
+				modelMix: "Claude Sonnet, Claude Haiku",
+				tokensUsed: 35000000,
+				costUsd: 4900,
+				trendPct: 31,
+				usage: "Long-context analysis, finance memo generation",
+			},
+		],
+	},
 	cloudSpendBreakdown: {
 		computeGpuUsd: 58000,
 		databasesUsd: 11000,
@@ -86,9 +122,10 @@ export const startupDataset = {
 		payrollUsd: 182000,
 		marketingSpendUsd: 48000,
 		saasToolsUsd: 12000,
-		monthlyOperatingCostsUsd: 339000,
-		netBurnUsd: 193000,
-		runwayMonths: 6.2,
+		aiTokenSpendUsd: 16700,
+		monthlyOperatingCostsUsd: 355700,
+		netBurnUsd: 209700,
+		runwayMonths: 5.7,
 	},
 	dangerScenarios: [
 		{
@@ -117,6 +154,7 @@ export const startupDashboardData = {
 	netBurn: startupDataset.businessMetrics.netBurnUsd,
 	runway: startupDataset.businessMetrics.runwayMonths,
 	cloudExpenses: startupDataset.cloudSpendBreakdown,
+	aiTokenUsage: startupDataset.aiTokenUsage,
 	revenueStreams: {
 		subscriptions: 104000,
 		usage: 42000,
@@ -128,11 +166,14 @@ export const startupDashboardData = {
 		totalCashIn: (snapshot.revenueUsd + (snapshot.fundingUsd ?? 0)) / 1000,
 		expenses:
 			(snapshot.cloudSpendUsd +
+				snapshot.aiTokenSpendUsd +
 				startupDataset.businessMetrics.payrollUsd +
 				startupDataset.businessMetrics.marketingSpendUsd +
 				startupDataset.businessMetrics.saasToolsUsd) /
 			1000,
 		cloud: snapshot.cloudSpendUsd / 1000,
+		aiTokens: snapshot.aiTokensUsed / 1000000,
+		aiTokenCost: snapshot.aiTokenSpendUsd / 1000,
 	})),
 	projectedCosts: [
 		{
@@ -143,6 +184,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 9,
 			observability: 4,
 			aiApis: 7,
+			openAi: 11.8,
+			anthropic: 4.9,
 			miscInfra: 2,
 		},
 		{
@@ -153,6 +196,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 12,
 			observability: 5,
 			aiApis: 9,
+			openAi: 14.9,
+			anthropic: 6.2,
 			miscInfra: 3,
 		},
 		{
@@ -163,6 +208,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 16,
 			observability: 6,
 			aiApis: 12,
+			openAi: 18.7,
+			anthropic: 7.8,
 			miscInfra: 3,
 		},
 		{
@@ -173,6 +220,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 20,
 			observability: 7,
 			aiApis: 15,
+			openAi: 23.3,
+			anthropic: 9.8,
 			miscInfra: 4,
 		},
 		{
@@ -183,6 +232,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 25,
 			observability: 9,
 			aiApis: 19,
+			openAi: 29.1,
+			anthropic: 12.2,
 			miscInfra: 5,
 		},
 		{
@@ -193,6 +244,8 @@ export const startupDashboardData = {
 			bandwidthCdn: 31,
 			observability: 12,
 			aiApis: 12,
+			openAi: 44.0,
+			anthropic: 18.6,
 			miscInfra: 4,
 		},
 	],
@@ -206,6 +259,12 @@ export function buildStartupDatasetContext() {
 		.map(
 			(snapshot) =>
 				`- ${snapshot.month}: MAU ${formatNumber(snapshot.mau)}, DAU ${formatNumber(snapshot.dau)}, revenue ${formatUsd(snapshot.revenueUsd)}, funding ${formatUsd(snapshot.fundingUsd ?? 0)}, cloud spend ${formatUsd(snapshot.cloudSpendUsd)}`,
+		)
+		.join("\n");
+	const aiTokenServices = startupDataset.aiTokenUsage.services
+		.map(
+			(service) =>
+				`- ${service.name}: ${formatNumber(service.tokensUsed)} tokens, ${formatUsd(service.costUsd)}/month, ${service.trendPct}% growth; ${service.usage}; model mix: ${service.modelMix}`,
 		)
 		.join("\n");
 	const fundingRounds = startupDataset.fundingRounds
@@ -251,6 +310,13 @@ Current business metrics:
 - Total monthly operating costs: ${formatUsd(startupDataset.businessMetrics.monthlyOperatingCostsUsd)}
 - Net burn: ${formatUsd(startupDataset.businessMetrics.netBurnUsd)}/month
 - Runway: ${startupDataset.businessMetrics.runwayMonths} months
+
+AI token usage:
+- Total tokens: ${formatNumber(startupDataset.aiTokenUsage.totalTokens)}/month
+- Total AI token cost: ${formatUsd(startupDataset.aiTokenUsage.totalCostUsd)}/month
+- Tokens per employee: ${formatNumber(startupDataset.aiTokenUsage.tokensPerEmployee)}/month
+- AI token cost per employee: ${formatUsd(startupDataset.aiTokenUsage.costPerEmployeeUsd)}/month
+${aiTokenServices}
 
 Cloud spend breakdown:
 ${cloudBreakdown}

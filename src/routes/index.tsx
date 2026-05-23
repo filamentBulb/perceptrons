@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useStore } from "@tanstack/react-store";
 import {
+	Bot,
 	Check,
 	Cloud,
 	CreditCard,
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/")({
 type Integration = {
 	id: string;
 	name: string;
-	category: "Cloud" | "Revenue" | "Banking";
+	category: "Cloud" | "AI Tokens" | "Revenue" | "Banking";
 	detail: string;
 	authLabel: string;
 	icon: typeof Cloud;
@@ -138,6 +139,31 @@ const integrations: Integration[] = [
 		],
 	},
 	{
+		id: "ai-tokens",
+		name: "AI Tokens",
+		category: "AI Tokens",
+		detail: "OpenAI and Anthropic token usage, model mix, and monthly cost",
+		authLabel: "AI vendor usage exports",
+		icon: Bot,
+		scopes: [
+			"OpenAI usage API",
+			"Anthropic usage exports",
+			"Model cost ledger",
+		],
+		summary: "AI token usage adds OpenAI and Anthropic COGS to runway models.",
+		stats: [
+			["Monthly tokens", "121.0M"],
+			["Monthly spend", "$16,700"],
+			["Employees", "28"],
+		],
+		services: [
+			["OpenAI", "86.0M tokens", "$11,800/mo"],
+			["Anthropic", "35.0M tokens", "$4,900/mo"],
+			["Cost / employee", "28 employees", "$596/mo"],
+			["Usage growth", "MoM blended", "+36%"],
+		],
+	},
+	{
 		id: "stripe",
 		name: "Stripe",
 		category: "Revenue",
@@ -159,9 +185,9 @@ const integrations: Integration[] = [
 		],
 	},
 	{
-		id: "bank",
+		id: "banking",
 		name: "Bank Account",
-		category: "Revenue",
+		category: "Banking",
 		detail: "Operating balance, incoming transfers, business deposits",
 		authLabel: "Bank Account Connection",
 		icon: Landmark,
@@ -244,8 +270,12 @@ function ConnectSources() {
 	const expenseIntegrations = integrations.filter(
 		(integration) => integration.category === "Cloud",
 	);
+	const aiTokenIntegrations = integrations.filter(
+		(integration) => integration.category === "AI Tokens",
+	);
 	const revenueIntegrations = integrations.filter(
-		(integration) => integration.category === "Revenue",
+		(integration) =>
+			integration.category === "Revenue" || integration.category === "Banking",
 	);
 
 	return (
@@ -257,7 +287,7 @@ function ConnectSources() {
 				<ForecastLink enabled={canOpenForecasts} />
 			</section>
 
-			<section className="mt-10 grid gap-6 lg:grid-cols-2">
+			<section className="mt-10 grid gap-6 lg:grid-cols-3">
 				{/* Expenses Column */}
 				<div>
 					<h2 className="mb-3 text-center text-xl font-extrabold text-[var(--sea-ink)]">
@@ -265,6 +295,55 @@ function ConnectSources() {
 					</h2>
 					<div className="space-y-2">
 						{expenseIntegrations.map((integration) => {
+							const isConnected = connected.includes(integration.id);
+
+							return (
+								<article
+									className="feature-card rounded-lg p-3"
+									key={integration.id}
+								>
+									<div className="mb-2 flex items-start justify-between gap-3">
+										<div>
+											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
+												{integration.name}
+											</h3>
+										</div>
+										{isConnected ? (
+											<span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500 text-white">
+												<Check size={14} />
+											</span>
+										) : null}
+									</div>
+									<p className="mb-2 text-sm leading-5 text-[var(--sea-ink-soft)]">
+										{integration.detail}
+									</p>
+									{isConnected ? (
+										<SyncedPreview integration={integration} />
+									) : null}
+									<button
+										className={`mt-2 w-full rounded-lg border px-3 py-1.5 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+											isConnected
+												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
+												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
+										}`}
+										onClick={() => toggleConnection(integration)}
+										type="button"
+									>
+										{isConnected ? "Deselect" : "Select"}
+									</button>
+								</article>
+							);
+						})}
+					</div>
+				</div>
+
+				{/* AI Tokens Column */}
+				<div>
+					<h2 className="mb-3 text-center text-xl font-extrabold text-[var(--sea-ink)]">
+						AI Tokens
+					</h2>
+					<div className="space-y-2">
+						{aiTokenIntegrations.map((integration) => {
 							const isConnected = connected.includes(integration.id);
 
 							return (
@@ -504,7 +583,7 @@ function ConnectionModal({
 
 					<div className="rounded-xl border border-[var(--line)] bg-slate-950 p-4 text-white">
 						<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-emerald-300">
-							Preview cloud data
+							Preview source data
 						</p>
 						<h3 className="mb-4 mt-2 text-lg font-extrabold">
 							{integration.summary}

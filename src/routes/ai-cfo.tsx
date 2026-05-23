@@ -36,6 +36,7 @@ const sourceLabels: Record<string, string> = {
 	gcp: "GCP",
 	azure: "Azure",
 	cloudflare: "Cloudflare",
+	"ai-tokens": "AI Tokens",
 	stripe: "Stripe",
 	banking: "Open Banking",
 };
@@ -155,6 +156,13 @@ function AiCfoChatScreen() {
 							icon={Wallet}
 							label="Bank source"
 							value={connectedSourceIds.includes("banking") ? "Connected" : ""}
+						/>
+						<ContextPill
+							icon={Bot}
+							label="AI tokens"
+							value={
+								connectedSourceIds.includes("ai-tokens") ? "Connected" : ""
+							}
 						/>
 					</div>
 
