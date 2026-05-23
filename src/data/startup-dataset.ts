@@ -4,14 +4,14 @@ export const startupDataset = {
 		product: "AI productivity/API platform",
 		ageYears: 2,
 		employees: 28,
-		fundingRaisedUsd: 4000000,
-		currentCashUsd: 1200000,
+		fundingRaisedUsd: 1800000,
+		currentCashUsd: 1380000,
 	},
 	fundingRounds: [
 		{
 			month: "Mar",
 			type: "Series A",
-			amountUsd: 4000000,
+			amountUsd: 1800000,
 			leadInvestor: "Northstar Ventures",
 			notes:
 				"Primary financing used for hiring, GPU capacity, and enterprise sales.",
@@ -46,7 +46,7 @@ export const startupDataset = {
 			cloudSpendUsd: 31000,
 			aiTokenSpendUsd: 6800,
 			aiTokensUsed: 48600000,
-			fundingUsd: 4000000,
+			fundingUsd: 1800000,
 		},
 		{
 			month: "Apr",
@@ -125,7 +125,7 @@ export const startupDataset = {
 		aiTokenSpendUsd: 16700,
 		monthlyOperatingCostsUsd: 355700,
 		netBurnUsd: 209700,
-		runwayMonths: 5.7,
+		runwayMonths: 6.6,
 	},
 	dangerScenarios: [
 		{
@@ -138,7 +138,7 @@ export const startupDataset = {
 			notes: [
 				"GPU spend expands fastest under inference-heavy traffic.",
 				"CDN and database scaling rise before Stripe revenue catches up.",
-				"Runway drops from 6.2 months to about 3.4 months.",
+				"Runway drops from 6.6 months to about 3.4 months.",
 			],
 		},
 	],
