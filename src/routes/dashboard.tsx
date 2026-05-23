@@ -9,11 +9,8 @@ import {
 	CreditCard,
 	DollarSign,
 	Landmark,
-	TrendingUp,
 } from "lucide-react";
 import { type ElementType, useEffect, useRef, useState } from "react";
-import { Slider } from "#/components/ui/slider";
-import { awsCostAnalysisMeta, awsCostStageSummary } from "#/data/cost-analysis";
 import {
 	latestStartupSnapshot,
 	startupDashboardData,
@@ -77,74 +74,11 @@ function generateFutureMonthsData(monthCount: number) {
 	return result;
 }
 
-const cloudCategories = Object.entries(startupDashboardData.cloudExpenses).map(
-	([id, spend]) => ({
-		id,
-		name: cloudExpenseLabel(id),
-		spend,
-		growth: cloudGrowthLabel(id),
-	}),
-);
-const aiTokenCategories = startupDashboardData.aiTokenUsage.services.map(
-	(service) => ({
-		id: service.id,
-		name: service.name,
-		spend: service.costUsd,
-		growth: `${(service.tokensUsed / 1000000).toFixed(1)}M tokens/mo · ${service.usage}`,
-	}),
-);
-const expenseCategories = [...cloudCategories, ...aiTokenCategories];
-
-const CLOUD_PROVIDER_IDS = ["aws", "gcp", "azure", "cloudflare"] as const;
-type CloudProviderId = (typeof CLOUD_PROVIDER_IDS)[number];
-
-type ScaleTier = {
-	users: number;
-	dau: number;
-	concurrent: number;
-	total: number;
-	cloudTotal: number;
-	aiTokenTotal: number;
-	note: string;
-	breakdown: Array<{ label: string; cost: number }>;
-};
-
-const CLOUD_SCALE_MODELS: Record<
-	CloudProviderId,
-	{ name: string; colorClass: string; allocation: number }
-> = {
-	aws: {
-		name: "AWS",
-		colorClass: "bg-orange-500",
-		allocation: 0.42,
-	},
-	gcp: {
-		name: "GCP",
-		colorClass: "bg-blue-500",
-		allocation: 0.28,
-	},
-	azure: {
-		name: "Azure",
-		colorClass: "bg-cyan-500",
-		allocation: 0.19,
-	},
-	cloudflare: {
-		name: "Cloudflare",
-		colorClass: "bg-yellow-500",
-		allocation: 0.11,
-	},
-};
-
-const currentUsers = latestStartupSnapshot.mau;
 const currentCloudSpend = Object.values(
 	startupDashboardData.cloudExpenses,
 ).reduce((sum, spend) => sum + spend, 0);
 const currentAiTokenSpend = startupDashboardData.aiTokenUsage.totalCostUsd;
 const currentAiTokenUsage = startupDashboardData.aiTokenUsage.totalTokens;
-const currentCostDriverSpend = currentCloudSpend + currentAiTokenSpend;
-const currentCloudSpendFromSnapshots = latestStartupSnapshot.cloudSpendUsd;
-const currentCloudSpendDelta =
-	currentCloudSpend - currentCloudSpendFromSnapshots;
 const currentRevenue = latestStartupSnapshot.revenueUsd;
 const currentPayroll = startupDataset.businessMetrics.payrollUsd;
 const currentMarketingSpend = startupDataset.businessMetrics.marketingSpendUsd;
@@ -199,13 +133,15 @@ function App() {
 							Dashboard
 						</h1>
 					</div>
-					<a
-						href="/"
-						className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
-					>
-						Configure Sources
-						<ArrowRight size={16} />
-					</a>
+					<div className="flex flex-wrap gap-2">
+						<a
+							href="/"
+							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
+						>
+							Configure Sources
+							<ArrowRight size={16} />
+						</a>
+					</div>
 				</div>
 
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -295,136 +231,7 @@ function App() {
 				</div>
 			</section>
 
-			<div className="grid gap-8 lg:grid-cols-2">
-				<section>
-					<div className="island-shell rounded-2xl p-4 sm:p-6">
-						<div className="mb-4">
-							<p className="island-kicker mb-2">Expense breakdown</p>
-							<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-								Cloud & AI Cost Categories
-							</h2>
-						</div>
-						<div className="space-y-3">
-							{expenseCategories.map((category) => (
-								<div
-									key={category.id}
-									className="rounded-lg border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5"
-								>
-									<div className="mb-3 flex items-center justify-between">
-										<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
-											{category.name}
-										</h3>
-										<span className="text-lg font-extrabold text-[var(--sea-ink)]">
-											${(category.spend / 1000).toFixed(1)}k
-										</span>
-									</div>
-									<div className="mb-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-										<div
-											className="h-full rounded-full bg-[var(--lagoon-deep)]"
-											style={{
-												width: `${(category.spend / currentCostDriverSpend) * 100}%`,
-											}}
-										/>
-									</div>
-									<p className="m-0 text-xs text-[var(--sea-ink-soft)]">
-										{category.growth}
-									</p>
-								</div>
-							))}
-						</div>
-						<div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
-							<p className="m-0 text-sm font-bold text-emerald-700 dark:text-emerald-200">
-								Total Cloud + AI Spend: $
-								{(currentCostDriverSpend / 1000).toFixed(1)}k/mo
-							</p>
-						</div>
-					</div>
-				</section>
-
-				<section>
-					<div className="island-shell rounded-2xl p-4 sm:p-6">
-						<div className="mb-4">
-							<p className="island-kicker mb-2">Forecast</p>
-							<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-								Cash Flow & Runway
-							</h2>
-						</div>
-						<div className="mb-4 rounded-lg border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5">
-							<p className="m-0 text-sm text-[var(--sea-ink-soft)]">
-								Current Balance
-							</p>
-							<p className="m-0 mt-1 text-3xl font-extrabold text-[var(--sea-ink)]">
-								${(bankBalance / 1000).toFixed(0)}k
-							</p>
-						</div>
-						<div className="space-y-3">
-							<RunwayRow
-								label="MRR"
-								value={`$${(currentRevenue / 1000).toFixed(1)}k`}
-								highlight
-							/>
-							<RunwayRow
-								label="Cloud Expenses"
-								value={`-$${(currentCloudSpend / 1000).toFixed(1)}k`}
-								danger
-							/>
-							<RunwayRow
-								label="AI Token Spend"
-								value={`-$${(currentAiTokenSpend / 1000).toFixed(1)}k`}
-								danger
-							/>
-							<RunwayRow
-								label="Payroll"
-								value={`-$${(currentPayroll / 1000).toFixed(1)}k`}
-							/>
-							<RunwayRow
-								label="Marketing"
-								value={`-$${(currentMarketingSpend / 1000).toFixed(1)}k`}
-							/>
-							<RunwayRow
-								label="SaaS Tools"
-								value={`-$${(currentSaasToolsSpend / 1000).toFixed(1)}k`}
-							/>
-							<RunwayRow
-								label="Monthly Operating Costs"
-								value={`-$${(currentExpenses / 1000).toFixed(1)}k`}
-								danger
-							/>
-							<RunwayRow
-								label="Net Burn Rate"
-								value={`-$${(netBurn / 1000).toFixed(1)}k`}
-								danger
-							/>
-							<RunwayRow
-								label="Runway"
-								value={`${runway.toFixed(1)} months`}
-								highlight
-							/>
-						</div>
-						<div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
-							<p className="m-0 text-xs font-bold uppercase text-amber-700 dark:text-amber-200">
-								Funding Context
-							</p>
-							<p className="m-0 mt-1 text-sm text-[var(--sea-ink)]">
-								{latestFundingRound?.type ?? "Series A"} added $
-								{((latestFundingRound?.amountUsd ?? 0) / 1000000).toFixed(1)}M
-								in {latestFundingRound?.month ?? "Mar"}, lifting cash runway
-								while operating burn remains visible.
-							</p>
-						</div>
-					</div>
-				</section>
-			</div>
-
-			<section className="mt-8">
-				<CloudProviderScaleSlider />
-			</section>
-
-			<section className="mt-8">
-				<AwsCostScenarios />
-			</section>
-
-			<section className="mt-8">
+			{/* <section className="mt-8">
 				<div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 sm:p-6">
 					<div className="flex gap-3">
 						<TrendingUp className="shrink-0 text-red-600" size={24} />
@@ -451,174 +258,8 @@ function App() {
 						</div>
 					</div>
 				</div>
-			</section>
+			</section> */}
 		</main>
-	);
-}
-
-function CloudProviderScaleSlider() {
-	const [users, setUsers] = useState<number>(currentUsers);
-	const tier = makeScaleTier(users);
-	const comparisonTotals = CLOUD_PROVIDER_IDS.map((providerId) => {
-		const provider = CLOUD_SCALE_MODELS[providerId];
-
-		return {
-			id: providerId,
-			name: provider.name,
-			colorClass: provider.colorClass,
-			total: Math.round(tier.cloudTotal * provider.allocation),
-		};
-	});
-	const cloudSpendSyncsWithDashboard =
-		users === currentUsers && currentCloudSpendDelta === 0;
-
-	return (
-		<div className="island-shell rounded-2xl p-4 sm:p-6">
-			<div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-				<div>
-					<p className="island-kicker mb-2">What-if / cloud providers</p>
-					<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-						Scale Cost Simulator
-					</h2>
-				</div>
-				<div className="rounded-lg border border-[var(--line)] bg-white/50 px-3 py-2 text-sm font-bold text-[var(--sea-ink)] dark:bg-white/5">
-					Current MAU: {currentUsers.toLocaleString()}
-				</div>
-			</div>
-
-			<div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]">
-				<div className="rounded-xl border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5">
-					<p className="m-0 text-sm font-bold text-[var(--sea-ink-soft)]">
-						Cloud and AI vendors at {tier.users.toLocaleString()} users
-					</p>
-					<div className="mt-1 text-4xl font-extrabold text-[var(--sea-ink)]">
-						${formatMonthlyCost(tier.total)}/mo
-					</div>
-					<p className="m-0 mt-2 text-sm text-[var(--sea-ink-soft)]">
-						{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
-						concurrent / {tier.note}
-					</p>
-					{cloudSpendSyncsWithDashboard && (
-						<p className="m-0 mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-200">
-							Matches Cloud + AI dashboard bill.
-						</p>
-					)}
-				</div>
-				<div className="grid grid-cols-2 gap-2">
-					{comparisonTotals.map((provider) => (
-						<div
-							key={provider.id}
-							className="rounded-lg border border-[var(--line)] bg-white/40 p-3 dark:bg-white/5"
-						>
-							<div className="mb-2 flex items-center gap-2">
-								<span
-									className={`h-2 w-2 rounded-full ${provider.colorClass}`}
-									aria-hidden="true"
-								/>
-								<span className="text-xs font-bold text-[var(--sea-ink-soft)]">
-									{provider.name}
-								</span>
-							</div>
-							<p className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-								${formatMonthlyCost(provider.total)}
-							</p>
-						</div>
-					))}
-				</div>
-			</div>
-
-			<Slider
-				value={[users]}
-				min={100}
-				max={1000000}
-				step={100}
-				onValueChange={([value]) => setUsers(value)}
-				className="my-4"
-				aria-label="Monthly active users"
-			/>
-			<div className="mb-4 flex justify-between text-xs font-bold text-[var(--sea-ink-soft)]">
-				<span>100</span>
-				<span>{currentUsers.toLocaleString()} current</span>
-				<span>1M</span>
-			</div>
-			<div className="grid gap-3 sm:grid-cols-2">
-				{tier.breakdown.map((item) => {
-					const percentage =
-						item.cost === 0 ? 0 : (item.cost / tier.total) * 100;
-
-					return (
-						<div key={item.label} className="space-y-1">
-							<div className="flex items-center justify-between gap-3 text-sm">
-								<span className="font-bold text-[var(--sea-ink)]">
-									{item.label}
-								</span>
-								<span className="font-extrabold text-[var(--sea-ink)]">
-									${formatMonthlyCost(item.cost)}
-								</span>
-							</div>
-							<div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-								<div
-									className="h-full rounded-full bg-[var(--lagoon-deep)]"
-									style={{ width: `${percentage}%` }}
-								/>
-							</div>
-						</div>
-					);
-				})}
-			</div>
-		</div>
-	);
-}
-
-const STAGE_COLORS: Record<number, string> = {
-	0: "border-[var(--line)] bg-white/40 dark:bg-white/5",
-	1: "border-amber-500/30 bg-amber-500/5",
-	2: "border-emerald-500/20 bg-emerald-500/5",
-	3: "border-emerald-500/30 bg-emerald-500/10",
-	4: "border-emerald-600/40 bg-emerald-500/15",
-};
-
-function formatUsd(n: number) {
-	if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-	if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
-	return `$${n.toFixed(0)}`;
-}
-
-function AwsCostScenarios() {
-	const meta = awsCostAnalysisMeta;
-
-	return (
-		<div className="island-shell rounded-2xl p-4 sm:p-6">
-			<div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-				<div>
-					<p className="island-kicker mb-2">AWS · 1,000,000 users</p>
-					<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
-						Cost Scenarios
-					</h2>
-				</div>
-				<p className="m-0 text-xs text-[var(--sea-ink-soft)]">
-					Region {meta.region} · {meta.pricingSource}
-				</p>
-			</div>
-
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-				{awsCostStageSummary.map((s, i) => (
-					<div
-						key={s.stage}
-						className={`rounded-xl border p-4 ${STAGE_COLORS[i] ?? STAGE_COLORS[0]}`}
-					>
-						<p className="island-kicker mb-2 text-[10px]">{s.stage}</p>
-						<p className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-							{formatUsd(s.monthlyUsd)}
-						</p>
-						<p className="m-0 text-xs text-[var(--sea-ink-soft)]">/mo</p>
-						<p className="m-0 mt-2 text-xs font-bold text-[var(--sea-ink-soft)]">
-							{formatUsd(s.annualUsd)} / yr
-						</p>
-					</div>
-				))}
-			</div>
-		</div>
 	);
 }
 
@@ -660,49 +301,6 @@ function MetricCard({
 			<p className="m-0 mt-1 text-2xl font-extrabold text-[var(--sea-ink)]">
 				{value}
 			</p>
-		</div>
-	);
-}
-
-function RunwayRow({
-	label,
-	value,
-	danger = false,
-	highlight = false,
-}: {
-	label: string;
-	value: string;
-	danger?: boolean;
-	highlight?: boolean;
-}) {
-	return (
-		<div
-			className={`flex items-center justify-between rounded-lg border p-3 ${
-				highlight
-					? "border-emerald-500/20 bg-emerald-500/10"
-					: "border-[var(--line)] bg-white/50 dark:bg-white/5"
-			}`}
-		>
-			<span
-				className={`text-sm font-bold ${
-					highlight
-						? "text-emerald-700 dark:text-emerald-200"
-						: "text-[var(--sea-ink-soft)]"
-				}`}
-			>
-				{label}
-			</span>
-			<span
-				className={`text-base font-extrabold ${
-					danger
-						? "text-red-600"
-						: highlight
-							? "text-emerald-700 dark:text-emerald-200"
-							: "text-[var(--sea-ink)]"
-				}`}
-			>
-				{value}
-			</span>
 		</div>
 	);
 }
@@ -862,96 +460,8 @@ function RevenueExpenseChart({
 	);
 }
 
-function makeScaleTier(users: number): ScaleTier {
-	const normalizedUsers = Math.max(100, users);
-	const scaleRatio = normalizedUsers / currentUsers;
-	const cloudTotal = Math.round(currentCloudSpend * scaleRatio);
-	const aiTokenTotal = Math.round(currentAiTokenSpend * scaleRatio ** 1.08);
-	const total = cloudTotal + aiTokenTotal;
-
-	return {
-		users: normalizedUsers,
-		dau: Math.round(
-			normalizedUsers *
-				(startupDataset.productMetrics.dau / startupDataset.productMetrics.mau),
-		),
-		concurrent: Math.max(1, Math.round(normalizedUsers * 0.005)),
-		total,
-		cloudTotal,
-		aiTokenTotal,
-		note:
-			normalizedUsers === currentUsers
-				? "current dashboard baseline"
-				: "AI tokens scale slightly faster than traffic in this model",
-		breakdown: splitScaleCost(cloudTotal, aiTokenTotal),
-	};
-}
-
-function splitScaleCost(cloudTotal: number, aiTokenTotal: number) {
-	const categories = Object.entries(startupDashboardData.cloudExpenses);
-	const cloudBreakdown = categories.map(([key, currentCost], index) => {
-		const isLast = index === categories.length - 1;
-		const allocatedCost = isLast
-			? cloudTotal -
-				categories
-					.slice(0, -1)
-					.reduce(
-						(sum, [, cost]) =>
-							sum + Math.round(cloudTotal * (cost / currentCloudSpend)),
-						0,
-					)
-			: Math.round(cloudTotal * (currentCost / currentCloudSpend));
-
-		return {
-			label: cloudExpenseLabel(key),
-			cost: allocatedCost,
-		};
-	});
-
-	const aiBreakdown = startupDashboardData.aiTokenUsage.services.map(
-		(service) => ({
-			label: service.name,
-			cost: Math.round(aiTokenTotal * (service.costUsd / currentAiTokenSpend)),
-		}),
-	);
-
-	return [...cloudBreakdown, ...aiBreakdown];
-}
-
-function formatMonthlyCost(value: number) {
-	return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
-}
-
 function formatSignedPercent(value: number) {
 	const sign = value > 0 ? "+" : "";
 
 	return `${sign}${value.toFixed(0)}%`;
-}
-
-function cloudExpenseLabel(key: string) {
-	const labels: Record<string, string> = {
-		computeGpuUsd: "Compute/GPU",
-		databasesUsd: "Databases",
-		storageUsd: "Storage",
-		bandwidthCdnUsd: "Bandwidth/CDN",
-		observabilityLoggingUsd: "Observability/logging",
-		aiApisUsd: "AI APIs",
-		miscInfraUsd: "Misc infra",
-	};
-
-	return labels[key] ?? key;
-}
-
-function cloudGrowthLabel(key: string) {
-	const labels: Record<string, string> = {
-		computeGpuUsd: "GPU inference is the main May cost driver.",
-		databasesUsd: "Database scaling follows request and workspace growth.",
-		storageUsd: "Storage is growing steadily with model artifacts and exports.",
-		bandwidthCdnUsd: "Bandwidth rises with active usage and API traffic.",
-		observabilityLoggingUsd: "Logging volume tracks request growth.",
-		aiApisUsd: "External AI calls remain meaningful but below GPU spend.",
-		miscInfraUsd: "Smaller networking and support infrastructure costs.",
-	};
-
-	return labels[key] ?? "Infrastructure cost category.";
 }

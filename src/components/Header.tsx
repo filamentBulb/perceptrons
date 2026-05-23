@@ -11,6 +11,7 @@ export default function Header() {
 	);
 	const [showConnectToast, setShowConnectToast] = useState(false);
 	const canOpenAiCfo = hasRequiredForecastSources(connectedSourceIds);
+	const homeDestination = canOpenAiCfo ? "/dashboard" : "/";
 
 	useEffect(() => {
 		if (!showConnectToast) return;
@@ -27,11 +28,25 @@ export default function Header() {
 			<nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
 				<div className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 pb-1 text-sm font-semibold sm:w-auto sm:flex-nowrap sm:pb-0">
 					<Link
-						to="/"
+						to={homeDestination}
 						className="nav-link"
 						activeProps={{ className: "nav-link is-active" }}
 					>
 						Home
+					</Link>
+					<Link
+						to="/expense-breakdown"
+						className="nav-link"
+						activeProps={{ className: "nav-link is-active" }}
+					>
+						Expense Breakdown
+					</Link>
+					<Link
+						to="/scale-cost-simulator"
+						className="nav-link"
+						activeProps={{ className: "nav-link is-active" }}
+					>
+						Scale Simulator
 					</Link>
 					<Link
 						to="/ai-cfo"

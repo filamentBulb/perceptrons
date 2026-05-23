@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScaleCostSimulatorRouteImport } from './routes/scale-cost-simulator'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as ExpenseBreakdownRouteImport } from './routes/expense-breakdown'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as AiCfoRouteImport } from './routes/ai-cfo'
@@ -17,9 +19,19 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiAiCfoChatRouteImport } from './routes/api.ai-cfo.chat'
 
+const ScaleCostSimulatorRoute = ScaleCostSimulatorRouteImport.update({
+  id: '/scale-cost-simulator',
+  path: '/scale-cost-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpenseBreakdownRoute = ExpenseBreakdownRouteImport.update({
+  id: '/expense-breakdown',
+  path: '/expense-breakdown',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -59,7 +71,9 @@ export interface FileRoutesByFullPath {
   '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/dashboard': typeof DashboardRoute
+  '/expense-breakdown': typeof ExpenseBreakdownRoute
   '/mcp': typeof McpRoute
+  '/scale-cost-simulator': typeof ScaleCostSimulatorRoute
   '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
 }
 export interface FileRoutesByTo {
@@ -68,7 +82,9 @@ export interface FileRoutesByTo {
   '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/dashboard': typeof DashboardRoute
+  '/expense-breakdown': typeof ExpenseBreakdownRoute
   '/mcp': typeof McpRoute
+  '/scale-cost-simulator': typeof ScaleCostSimulatorRoute
   '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
 }
 export interface FileRoutesById {
@@ -78,7 +94,9 @@ export interface FileRoutesById {
   '/ai-cfo': typeof AiCfoRoute
   '/connect': typeof ConnectRoute
   '/dashboard': typeof DashboardRoute
+  '/expense-breakdown': typeof ExpenseBreakdownRoute
   '/mcp': typeof McpRoute
+  '/scale-cost-simulator': typeof ScaleCostSimulatorRoute
   '/api/ai-cfo/chat': typeof ApiAiCfoChatRoute
 }
 export interface FileRouteTypes {
@@ -89,7 +107,9 @@ export interface FileRouteTypes {
     | '/ai-cfo'
     | '/connect'
     | '/dashboard'
+    | '/expense-breakdown'
     | '/mcp'
+    | '/scale-cost-simulator'
     | '/api/ai-cfo/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -98,7 +118,9 @@ export interface FileRouteTypes {
     | '/ai-cfo'
     | '/connect'
     | '/dashboard'
+    | '/expense-breakdown'
     | '/mcp'
+    | '/scale-cost-simulator'
     | '/api/ai-cfo/chat'
   id:
     | '__root__'
@@ -107,7 +129,9 @@ export interface FileRouteTypes {
     | '/ai-cfo'
     | '/connect'
     | '/dashboard'
+    | '/expense-breakdown'
     | '/mcp'
+    | '/scale-cost-simulator'
     | '/api/ai-cfo/chat'
   fileRoutesById: FileRoutesById
 }
@@ -117,17 +141,33 @@ export interface RootRouteChildren {
   AiCfoRoute: typeof AiCfoRoute
   ConnectRoute: typeof ConnectRoute
   DashboardRoute: typeof DashboardRoute
+  ExpenseBreakdownRoute: typeof ExpenseBreakdownRoute
   McpRoute: typeof McpRoute
+  ScaleCostSimulatorRoute: typeof ScaleCostSimulatorRoute
   ApiAiCfoChatRoute: typeof ApiAiCfoChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/scale-cost-simulator': {
+      id: '/scale-cost-simulator'
+      path: '/scale-cost-simulator'
+      fullPath: '/scale-cost-simulator'
+      preLoaderRoute: typeof ScaleCostSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expense-breakdown': {
+      id: '/expense-breakdown'
+      path: '/expense-breakdown'
+      fullPath: '/expense-breakdown'
+      preLoaderRoute: typeof ExpenseBreakdownRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -181,7 +221,9 @@ const rootRouteChildren: RootRouteChildren = {
   AiCfoRoute: AiCfoRoute,
   ConnectRoute: ConnectRoute,
   DashboardRoute: DashboardRoute,
+  ExpenseBreakdownRoute: ExpenseBreakdownRoute,
   McpRoute: McpRoute,
+  ScaleCostSimulatorRoute: ScaleCostSimulatorRoute,
   ApiAiCfoChatRoute: ApiAiCfoChatRoute,
 }
 export const routeTree = rootRouteImport
