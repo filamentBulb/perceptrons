@@ -246,14 +246,9 @@ function ConnectSources() {
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="mb-10">
-				<p className="island-kicker mb-3">Public pricing setup</p>
 				<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
 					Choose public cloud pricing sources.
 				</h1>
-				<p className="mb-7 max-w-2xl text-base leading-7 text-[var(--sea-ink-soft)] sm:text-lg">
-					Use official retail pricing APIs and docs to prepare a hypothetical
-					cloud budget forecast. No provider account credentials are needed.
-				</p>
 				<ForecastLink enabled={canOpenForecasts} />
 			</section>
 
