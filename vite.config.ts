@@ -6,7 +6,6 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 import viteReact from "@vitejs/plugin-react";
-import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 
 function isolatedStaticPlugin(options: {
@@ -75,6 +74,9 @@ const config = defineConfig(({ mode }) => {
 		server: {
 			port: Number.isFinite(port) ? port : 3000,
 		},
+		preview: {
+			port: Number.isFinite(port) ? port : 3000,
+		},
 		plugins: [
 			isolatedStaticPlugin({
 				urlPrefix: "/cost-analysis",
@@ -82,7 +84,6 @@ const config = defineConfig(({ mode }) => {
 				indexFile: "aws-cost-analysis.html",
 			}),
 			devtools(),
-			nitro({ rollupConfig: { external: [/^@sentry\//] } }),
 			tailwindcss(),
 			tanstackStart(),
 			viteReact(),

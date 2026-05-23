@@ -1,10 +1,6 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-
-import StoreDevtools from "../lib/demo-store-devtools";
 
 import appCss from "../styles.css?url";
 
@@ -46,18 +42,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<Header />
 				{children}
 				<Footer />
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						StoreDevtools,
-					]}
-				/>
 				<Scripts />
 			</body>
 		</html>
