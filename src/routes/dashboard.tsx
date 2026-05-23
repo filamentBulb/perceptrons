@@ -23,9 +23,7 @@ const monthlyData = startupDashboardData.monthlyTrend.map((point) => ({
 	month: point.month,
 	revenue: point.revenue * 1000,
 	funding: point.funding * 1000,
-	totalCashIn: point.totalCashIn * 1000,
 	expenses: point.expenses * 1000,
-	cloudCost: point.cloud * 1000,
 }));
 
 const cloudCategories = Object.entries(startupDashboardData.cloudExpenses).map(
@@ -41,7 +39,6 @@ const CLOUD_PROVIDER_IDS = ["aws", "gcp", "azure", "cloudflare"] as const;
 type CloudProviderId = (typeof CLOUD_PROVIDER_IDS)[number];
 
 type ScaleTier = {
-	label: string;
 	users: number;
 	dau: number;
 	concurrent: number;
@@ -52,76 +49,67 @@ type ScaleTier = {
 
 const CLOUD_SCALE_MODELS: Record<
 	CloudProviderId,
-	{ name: string; colorClass: string; tiers: ScaleTier[] }
+	{ name: string; colorClass: string; allocation: number }
 > = {
 	aws: {
 		name: "AWS",
 		colorClass: "bg-orange-500",
-		tiers: makeScaleTiers(
-			[84, 273, 905, 7270],
-			[
-				"starter VM + managed database",
-				"single app node + managed database",
-				"small autoscaled fleet + database replica",
-				"multi-zone fleet + larger database cluster",
-			],
-		),
+		allocation: 0.42,
 	},
 	gcp: {
 		name: "GCP",
 		colorClass: "bg-blue-500",
-		tiers: makeScaleTiers(
-			[63, 218, 790, 6420],
-			[
-				"Cloud Run + small database",
-				"autoscaled app services + managed SQL",
-				"regional app fleet + HA database",
-				"multi-zone compute + regional SQL",
-			],
-		),
+		allocation: 0.28,
 	},
 	azure: {
 		name: "Azure",
 		colorClass: "bg-cyan-500",
-		tiers: makeScaleTiers(
-			[72, 246, 860, 6890],
-			[
-				"small App Service + Azure SQL",
-				"standard app tier + managed SQL",
-				"VM scale set + zone-redundant SQL",
-				"scale sets + business critical SQL",
-			],
-		),
+		allocation: 0.19,
 	},
 	cloudflare: {
 		name: "Cloudflare",
 		colorClass: "bg-yellow-500",
-		tiers: makeScaleTiers(
-			[25, 96, 340, 2600],
-			[
-				"Workers + R2 starter stack",
-				"Workers paid + light data usage",
-				"edge-first app + heavier reads",
-				"high-volume Workers + regional data tier",
-			],
-		),
+		allocation: 0.11,
 	},
 };
+
+const currentUsers = latestStartupSnapshot.mau;
+const currentCloudSpend = Object.values(
+	startupDashboardData.cloudExpenses,
+).reduce((sum, spend) => sum + spend, 0);
+const currentCloudSpendFromSnapshots = latestStartupSnapshot.cloudSpendUsd;
+const currentCloudSpendDelta =
+	currentCloudSpend - currentCloudSpendFromSnapshots;
+const currentRevenue = latestStartupSnapshot.revenueUsd;
+const currentPayroll = startupDataset.businessMetrics.payrollUsd;
+const currentMarketingSpend = startupDataset.businessMetrics.marketingSpendUsd;
+const currentSaasToolsSpend = startupDataset.businessMetrics.saasToolsUsd;
+const currentExpenses =
+	currentCloudSpend +
+	currentPayroll +
+	currentMarketingSpend +
+	currentSaasToolsSpend;
+const netBurn = Math.max(0, currentExpenses - currentRevenue);
+const bankBalance = startupDataset.company.currentCashUsd;
+const runway = netBurn === 0 ? Number.POSITIVE_INFINITY : bankBalance / netBurn;
+const cloudSpendGrowthPct =
+	startupDataset.monthlySnapshots.length < 2
+		? 0
+		: ((currentCloudSpend -
+				startupDataset.monthlySnapshots[
+					startupDataset.monthlySnapshots.length - 2
+				].cloudSpendUsd) /
+				startupDataset.monthlySnapshots[
+					startupDataset.monthlySnapshots.length - 2
+				].cloudSpendUsd) *
+			100;
 
 function App() {
 	const [selectedMetric, setSelectedMetric] = useState<"revenue" | "expenses">(
 		"revenue",
 	);
 
-	const totalCloudSpend = cloudCategories.reduce(
-		(sum, category) => sum + category.spend,
-		0,
-	);
-	const currentRevenue = startupDashboardData.monthlyRevenue;
-	const currentExpenses = startupDashboardData.monthlyExpenses;
-	const netBurn = startupDashboardData.netBurn;
-	const bankBalance = startupDashboardData.currentBalance;
-	const runway = startupDashboardData.runway;
+	const totalCloudSpend = currentCloudSpend;
 	const latestFundingRound = startupDataset.fundingRounds[0];
 	const fundingRaised = startupDataset.company.fundingRaisedUsd;
 	const spikeScenario = startupDataset.dangerScenarios[0];
@@ -170,7 +158,7 @@ function App() {
 						icon={Cloud}
 						label="Cloud Expenses"
 						value={`$${(totalCloudSpend / 1000).toFixed(1)}k`}
-						change="+80% MoM"
+						change={`${formatSignedPercent(cloudSpendGrowthPct)} MoM`}
 						trend="down"
 					/>
 					<MetricCard
@@ -300,15 +288,29 @@ function App() {
 							<RunwayRow
 								label="MRR"
 								value={`$${(currentRevenue / 1000).toFixed(1)}k`}
+								highlight
+							/>
+							<RunwayRow
+								label="Cloud Expenses"
+								value={`-$${(currentCloudSpend / 1000).toFixed(1)}k`}
+								danger
+							/>
+							<RunwayRow
+								label="Payroll"
+								value={`-$${(currentPayroll / 1000).toFixed(1)}k`}
+							/>
+							<RunwayRow
+								label="Marketing"
+								value={`-$${(currentMarketingSpend / 1000).toFixed(1)}k`}
+							/>
+							<RunwayRow
+								label="SaaS Tools"
+								value={`-$${(currentSaasToolsSpend / 1000).toFixed(1)}k`}
 							/>
 							<RunwayRow
 								label="Monthly Operating Costs"
-								value={`$${(currentExpenses / 1000).toFixed(1)}k`}
-							/>
-							<RunwayRow
-								label={`${latestFundingRound?.month ?? "Mar"} Funding Inflow`}
-								value={`$${((latestFundingRound?.amountUsd ?? 0) / 1000000).toFixed(1)}M`}
-								highlight
+								value={`-$${(currentExpenses / 1000).toFixed(1)}k`}
+								danger
 							/>
 							<RunwayRow
 								label="Net Burn Rate"
@@ -373,22 +375,20 @@ function App() {
 }
 
 function CloudProviderScaleSlider() {
-	const [idx, setIdx] = useState(3);
-	const [selectedProviderId, setSelectedProviderId] =
-		useState<CloudProviderId>("aws");
-	const selectedProvider = CLOUD_SCALE_MODELS[selectedProviderId];
-	const tier = selectedProvider.tiers[idx] ?? selectedProvider.tiers[0];
+	const [users, setUsers] = useState(currentUsers);
+	const tier = makeScaleTier(users);
 	const comparisonTotals = CLOUD_PROVIDER_IDS.map((providerId) => {
 		const provider = CLOUD_SCALE_MODELS[providerId];
-		const providerTier = provider.tiers[idx] ?? provider.tiers[0];
 
 		return {
 			id: providerId,
 			name: provider.name,
 			colorClass: provider.colorClass,
-			total: providerTier.total,
+			total: Math.round(tier.total * provider.allocation),
 		};
 	});
+	const cloudSpendSyncsWithDashboard =
+		users === currentUsers && currentCloudSpendDelta === 0;
 
 	return (
 		<div className="island-shell rounded-2xl p-4 sm:p-6">
@@ -399,38 +399,15 @@ function CloudProviderScaleSlider() {
 						Scale Cost Simulator
 					</h2>
 				</div>
-				<div className="grid grid-cols-2 gap-2 sm:flex">
-					{CLOUD_PROVIDER_IDS.map((providerId) => {
-						const provider = CLOUD_SCALE_MODELS[providerId];
-						const isSelected = providerId === selectedProviderId;
-
-						return (
-							<button
-								key={providerId}
-								type="button"
-								aria-pressed={isSelected}
-								onClick={() => setSelectedProviderId(providerId)}
-								className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition-colors ${
-									isSelected
-										? "border-[var(--sea-ink)] bg-[var(--sea-ink)] text-white"
-										: "border-[var(--line)] bg-white/50 text-[var(--sea-ink)] hover:border-[var(--sea-ink)] dark:bg-white/5"
-								}`}
-							>
-								<span
-									className={`h-2.5 w-2.5 rounded-full ${provider.colorClass}`}
-									aria-hidden="true"
-								/>
-								{provider.name}
-							</button>
-						);
-					})}
+				<div className="rounded-lg border border-[var(--line)] bg-white/50 px-3 py-2 text-sm font-bold text-[var(--sea-ink)] dark:bg-white/5">
+					Current MAU: {currentUsers.toLocaleString()}
 				</div>
 			</div>
 
 			<div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]">
 				<div className="rounded-xl border border-[var(--line)] bg-white/50 p-4 dark:bg-white/5">
 					<p className="m-0 text-sm font-bold text-[var(--sea-ink-soft)]">
-						{selectedProvider.name} at {tier.label} users
+						Combined cloud providers at {tier.users.toLocaleString()} users
 					</p>
 					<div className="mt-1 text-4xl font-extrabold text-[var(--sea-ink)]">
 						${formatMonthlyCost(tier.total)}/mo
@@ -439,16 +416,17 @@ function CloudProviderScaleSlider() {
 						{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
 						concurrent / {tier.note}
 					</p>
+					{cloudSpendSyncsWithDashboard && (
+						<p className="m-0 mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-200">
+							Matches Cloud Expenses dashboard bill.
+						</p>
+					)}
 				</div>
 				<div className="grid grid-cols-2 gap-2">
 					{comparisonTotals.map((provider) => (
 						<div
 							key={provider.id}
-							className={`rounded-lg border p-3 ${
-								provider.id === selectedProviderId
-									? "border-[var(--sea-ink)] bg-[var(--surface-strong)]"
-									: "border-[var(--line)] bg-white/40 dark:bg-white/5"
-							}`}
+							className="rounded-lg border border-[var(--line)] bg-white/40 p-3 dark:bg-white/5"
 						>
 							<div className="mb-2 flex items-center gap-2">
 								<span
@@ -468,17 +446,18 @@ function CloudProviderScaleSlider() {
 			</div>
 
 			<Slider
-				value={[idx]}
-				min={0}
-				max={3}
-				step={1}
-				onValueChange={([value]) => setIdx(value)}
+				value={[users]}
+				min={100}
+				max={1000000}
+				step={100}
+				onValueChange={([value]) => setUsers(value)}
 				className="my-4"
+				aria-label="Monthly active users"
 			/>
 			<div className="mb-4 flex justify-between text-xs font-bold text-[var(--sea-ink-soft)]">
-				{selectedProvider.tiers.map((scaleTier) => (
-					<span key={scaleTier.label}>{scaleTier.label}</span>
-				))}
+				<span>100</span>
+				<span>{currentUsers.toLocaleString()} current</span>
+				<span>1M</span>
 			</div>
 			<div className="grid gap-3 sm:grid-cols-2">
 				{tier.breakdown.map((item) => {
@@ -497,7 +476,7 @@ function CloudProviderScaleSlider() {
 							</div>
 							<div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
 								<div
-									className={`h-full rounded-full ${selectedProvider.colorClass}`}
+									className="h-full rounded-full bg-[var(--lagoon-deep)]"
 									style={{ width: `${percentage}%` }}
 								/>
 							</div>
@@ -675,36 +654,58 @@ function RevenueExpenseChart({
 	);
 }
 
-function makeScaleTiers(totals: number[], notes: string[]): ScaleTier[] {
-	const scale = [
-		{ label: "100", users: 100, dau: 10, concurrent: 5 },
-		{ label: "10K", users: 10000, dau: 1000, concurrent: 50 },
-		{ label: "100K", users: 100000, dau: 10000, concurrent: 500 },
-		{ label: "1M", users: 1000000, dau: 100000, concurrent: 5000 },
-	];
+function makeScaleTier(users: number): ScaleTier {
+	const normalizedUsers = Math.max(100, users);
+	const scaleRatio = normalizedUsers / currentUsers;
+	const total = Math.round(currentCloudSpend * scaleRatio);
 
-	return scale.map((tier, index) => ({
-		...tier,
-		total: totals[index] ?? 0,
-		note: notes[index] ?? "scaled infrastructure",
-		breakdown: splitScaleCost(totals[index] ?? 0),
-	}));
+	return {
+		users: normalizedUsers,
+		dau: Math.round(
+			normalizedUsers *
+				(startupDataset.productMetrics.dau / startupDataset.productMetrics.mau),
+		),
+		concurrent: Math.max(1, Math.round(normalizedUsers * 0.005)),
+		total,
+		note:
+			normalizedUsers === currentUsers
+				? "current dashboard baseline"
+				: "linear estimate from current MAU and cloud bill",
+		breakdown: splitScaleCost(total),
+	};
 }
 
 function splitScaleCost(total: number) {
-	return [
-		{ label: "Compute", cost: Math.round(total * 0.58) },
-		{ label: "Database", cost: Math.round(total * 0.12) },
-		{ label: "Storage", cost: Math.round(total * 0.05) },
-		{ label: "Bandwidth/CDN", cost: Math.round(total * 0.1) },
-		{ label: "Observability", cost: Math.round(total * 0.05) },
-		{ label: "AI APIs", cost: Math.round(total * 0.07) },
-		{ label: "Misc infra", cost: Math.round(total * 0.03) },
-	];
+	const categories = Object.entries(startupDashboardData.cloudExpenses);
+
+	return categories.map(([key, currentCost], index) => {
+		const isLast = index === categories.length - 1;
+		const allocatedCost = isLast
+			? total -
+				categories
+					.slice(0, -1)
+					.reduce(
+						(sum, [, cost]) =>
+							sum + Math.round(total * (cost / currentCloudSpend)),
+						0,
+					)
+			: Math.round(total * (currentCost / currentCloudSpend));
+
+		return {
+			label: cloudExpenseLabel(key),
+			cost: allocatedCost,
+		};
+	});
 }
 
 function formatMonthlyCost(value: number) {
 	return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+}
+
+function formatSignedPercent(value: number) {
+	const sign = value > 0 ? "+" : "";
+
+	return `${sign}${value.toFixed(0)}%`;
 }
 
 function cloudExpenseLabel(key: string) {
