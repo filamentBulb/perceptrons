@@ -22,6 +22,8 @@ export const Route = createFileRoute("/dashboard")({ component: App });
 const monthlyData = startupDashboardData.monthlyTrend.map((point) => ({
 	month: point.month,
 	revenue: point.revenue * 1000,
+	funding: point.funding * 1000,
+	totalCashIn: point.totalCashIn * 1000,
 	expenses: point.expenses * 1000,
 	cloudCost: point.cloud * 1000,
 }));
@@ -118,9 +120,10 @@ function App() {
 	const currentRevenue = startupDashboardData.monthlyRevenue;
 	const currentExpenses = startupDashboardData.monthlyExpenses;
 	const netBurn = startupDashboardData.netBurn;
-	const monthlyProfit = currentRevenue - currentExpenses;
 	const bankBalance = startupDashboardData.currentBalance;
 	const runway = startupDashboardData.runway;
+	const latestFundingRound = startupDataset.fundingRounds[0];
+	const fundingRaised = startupDataset.company.fundingRaisedUsd;
 	const spikeScenario = startupDataset.dangerScenarios[0];
 
 	const maxValue = Math.max(
@@ -172,10 +175,10 @@ function App() {
 					/>
 					<MetricCard
 						icon={DollarSign}
-						label="Net Burn"
-						value={`-$${(netBurn / 1000).toFixed(1)}k`}
-						change={`${Math.abs(monthlyProfit / 1000).toFixed(1)}k loss`}
-						trend="down"
+						label="Funding Raised"
+						value={`$${(fundingRaised / 1000000).toFixed(1)}M`}
+						change={`${latestFundingRound?.month ?? "Mar"} ${latestFundingRound?.type ?? "round"}`}
+						trend="up"
 					/>
 					<MetricCard
 						icon={Landmark}
@@ -303,6 +306,11 @@ function App() {
 								value={`$${(currentExpenses / 1000).toFixed(1)}k`}
 							/>
 							<RunwayRow
+								label={`${latestFundingRound?.month ?? "Mar"} Funding Inflow`}
+								value={`$${((latestFundingRound?.amountUsd ?? 0) / 1000000).toFixed(1)}M`}
+								highlight
+							/>
+							<RunwayRow
 								label="Net Burn Rate"
 								value={`-$${(netBurn / 1000).toFixed(1)}k`}
 								danger
@@ -315,14 +323,13 @@ function App() {
 						</div>
 						<div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
 							<p className="m-0 text-xs font-bold uppercase text-amber-700 dark:text-amber-200">
-								Danger Scenario
+								Funding Context
 							</p>
 							<p className="m-0 mt-1 text-sm text-[var(--sea-ink)]">
-								{spikeScenario?.label}: cloud spend reaches about $
-								{((spikeScenario?.expectedCloudSpendUsd ?? 0) / 1000).toFixed(
-									0,
-								)}
-								k/mo and runway falls to {spikeScenario?.runwayMonths} months.
+								{latestFundingRound?.type ?? "Series A"} added $
+								{((latestFundingRound?.amountUsd ?? 0) / 1000000).toFixed(1)}M
+								in {latestFundingRound?.month ?? "Mar"}, lifting cash runway
+								while operating burn remains visible.
 							</p>
 						</div>
 					</div>
@@ -631,6 +638,11 @@ function RevenueExpenseChart({
 									<p className="m-0 text-sm font-bold text-emerald-600">
 										Revenue: ${(item.revenue / 1000).toFixed(1)}k
 									</p>
+									{item.funding > 0 && (
+										<p className="m-0 text-sm font-bold text-blue-600">
+											Funding: ${(item.funding / 1000000).toFixed(1)}M
+										</p>
+									)}
 									<p className="m-0 text-sm font-bold text-red-600">
 										Expenses: ${(item.expenses / 1000).toFixed(1)}k
 									</p>

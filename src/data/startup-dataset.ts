@@ -7,6 +7,16 @@ export const startupDataset = {
 		fundingRaisedUsd: 4000000,
 		currentCashUsd: 1200000,
 	},
+	fundingRounds: [
+		{
+			month: "Mar",
+			type: "Series A",
+			amountUsd: 4000000,
+			leadInvestor: "Northstar Ventures",
+			notes:
+				"Primary financing used for hiring, GPU capacity, and enterprise sales.",
+		},
+	],
 	monthlySnapshots: [
 		{
 			month: "Jan",
@@ -14,6 +24,7 @@ export const startupDataset = {
 			dau: 8000,
 			revenueUsd: 38000,
 			cloudSpendUsd: 14000,
+			fundingUsd: 0,
 		},
 		{
 			month: "Feb",
@@ -21,6 +32,7 @@ export const startupDataset = {
 			dau: 11000,
 			revenueUsd: 49000,
 			cloudSpendUsd: 19000,
+			fundingUsd: 0,
 		},
 		{
 			month: "Mar",
@@ -28,6 +40,7 @@ export const startupDataset = {
 			dau: 16000,
 			revenueUsd: 71000,
 			cloudSpendUsd: 31000,
+			fundingUsd: 4000000,
 		},
 		{
 			month: "Apr",
@@ -35,6 +48,7 @@ export const startupDataset = {
 			dau: 24000,
 			revenueUsd: 102000,
 			cloudSpendUsd: 54000,
+			fundingUsd: 0,
 		},
 		{
 			month: "May",
@@ -42,6 +56,7 @@ export const startupDataset = {
 			dau: 38000,
 			revenueUsd: 146000,
 			cloudSpendUsd: 97000,
+			fundingUsd: 0,
 		},
 	],
 	cloudSpendBreakdown: {
@@ -109,6 +124,8 @@ export const startupDashboardData = {
 	monthlyTrend: startupDataset.monthlySnapshots.map((snapshot) => ({
 		month: snapshot.month,
 		revenue: snapshot.revenueUsd / 1000,
+		funding: (snapshot.fundingUsd ?? 0) / 1000,
+		totalCashIn: (snapshot.revenueUsd + (snapshot.fundingUsd ?? 0)) / 1000,
 		expenses:
 			(snapshot.cloudSpendUsd +
 				startupDataset.businessMetrics.payrollUsd +
@@ -188,7 +205,13 @@ export function buildStartupDatasetContext() {
 	const snapshots = startupDataset.monthlySnapshots
 		.map(
 			(snapshot) =>
-				`- ${snapshot.month}: MAU ${formatNumber(snapshot.mau)}, DAU ${formatNumber(snapshot.dau)}, revenue ${formatUsd(snapshot.revenueUsd)}, cloud spend ${formatUsd(snapshot.cloudSpendUsd)}`,
+				`- ${snapshot.month}: MAU ${formatNumber(snapshot.mau)}, DAU ${formatNumber(snapshot.dau)}, revenue ${formatUsd(snapshot.revenueUsd)}, funding ${formatUsd(snapshot.fundingUsd ?? 0)}, cloud spend ${formatUsd(snapshot.cloudSpendUsd)}`,
+		)
+		.join("\n");
+	const fundingRounds = startupDataset.fundingRounds
+		.map(
+			(round) =>
+				`- ${round.month} ${round.type}: ${formatUsd(round.amountUsd)} led by ${round.leadInvestor}; ${round.notes}`,
 		)
 		.join("\n");
 	const scenario = startupDataset.dangerScenarios[0];
@@ -200,6 +223,9 @@ export function buildStartupDatasetContext() {
 - Employees: ${startupDataset.company.employees}
 - Funding raised: ${formatUsd(startupDataset.company.fundingRaisedUsd)}
 - Current cash: ${formatUsd(startupDataset.company.currentCashUsd)}
+
+Funding rounds:
+${fundingRounds}
 
 Monthly snapshots:
 ${snapshots}
