@@ -135,7 +135,7 @@ function App() {
 					</div>
 					<div className="flex flex-wrap gap-2">
 						<a
-							href="/"
+							href="/connect"
 							className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-2.5 text-sm font-bold text-[var(--sea-ink)] no-underline hover:-translate-y-0.5"
 						>
 							Configure Sources
