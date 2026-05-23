@@ -10,6 +10,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
+import { Slider } from "#/components/ui/slider";
 
 export const Route = createFileRoute("/dashboard")({ component: App });
 
@@ -35,6 +36,156 @@ const cloudProviders = [
 	{ name: "Azure", spend: 18200, growth: 18, color: "bg-cyan-500" },
 	{ name: "Cloudflare", spend: 7180, growth: 15, color: "bg-yellow-500" },
 ];
+
+const AWS_SCALE_TIERS = [
+	{
+		users: 100,
+		dau: 10,
+		concurrent: 5,
+		breakdown: {
+			ec2: 15,
+			alb: 18,
+			s3: 1,
+			cloudwatch: 2,
+			aurora: 15,
+			elasticache: 0,
+			dataTransfer: 1,
+			networking: 32,
+		},
+		total: 84,
+		note: "t4g.small + minimal NAT",
+	},
+	{
+		users: 10_000,
+		dau: 1_000,
+		concurrent: 50,
+		breakdown: {
+			ec2: 130,
+			alb: 20,
+			s3: 1,
+			cloudwatch: 10,
+			aurora: 60,
+			elasticache: 12,
+			dataTransfer: 5,
+			networking: 35,
+		},
+		total: 273,
+		note: "1x c6i.xlarge, db.t4g.medium",
+	},
+	{
+		users: 100_000,
+		dau: 10_000,
+		concurrent: 500,
+		breakdown: {
+			ec2: 500,
+			alb: 25,
+			s3: 5,
+			cloudwatch: 60,
+			aurora: 200,
+			elasticache: 25,
+			dataTransfer: 30,
+			networking: 60,
+		},
+		total: 905,
+		note: "2x c6i.xlarge, db.r6g.large",
+	},
+	{
+		users: 1_000_000,
+		dau: 100_000,
+		concurrent: 5_000,
+		breakdown: {
+			ec2: 5000,
+			alb: 200,
+			s3: 20,
+			cloudwatch: 550,
+			aurora: 750,
+			elasticache: 150,
+			dataTransfer: 300,
+			networking: 300,
+		},
+		total: 7270,
+		note: "18-20x c6i.xlarge/2xlarge, Aurora cluster",
+	},
+] as const;
+
+const SERVICE_LABELS: Record<string, string> = {
+	ec2: "EC2 (Compute)",
+	alb: "Load Balancer",
+	s3: "S3 Storage",
+	cloudwatch: "CloudWatch Logs",
+	aurora: "Aurora DB",
+	elasticache: "ElastiCache",
+	dataTransfer: "Data Transfer Out",
+	networking: "Networking & EBS",
+};
+
+const TIER_LABELS = ["100", "10K", "100K", "1M"] as const;
+
+function AwsScaleSlider() {
+	const [idx, setIdx] = useState(3);
+	const tier = AWS_SCALE_TIERS[idx];
+
+	return (
+		<div className="island-shell rounded-2xl p-4 sm:p-6">
+			<div className="mb-4">
+				<p className="island-kicker mb-2">What-if / AWS only</p>
+				<h2 className="m-0 text-xl font-extrabold text-[var(--sea-ink)]">
+					Cost at {TIER_LABELS[idx]} users
+				</h2>
+			</div>
+			<div className="mb-4 text-center">
+				<div className="text-4xl font-extrabold text-[var(--sea-ink)]">
+					$
+					{tier.total >= 1000
+						? `${(tier.total / 1000).toFixed(1)}k`
+						: tier.total}
+					/mo
+				</div>
+				<p className="m-0 mt-2 text-sm text-[var(--sea-ink-soft)]">
+					{tier.dau.toLocaleString()} DAU / {tier.concurrent.toLocaleString()}{" "}
+					concurrent / {tier.note}
+				</p>
+			</div>
+			<Slider
+				value={[idx]}
+				min={0}
+				max={3}
+				step={1}
+				onValueChange={([value]) => setIdx(value)}
+				className="my-4"
+			/>
+			<div className="mb-4 flex justify-between text-xs font-bold text-[var(--sea-ink-soft)]">
+				{TIER_LABELS.map((label) => (
+					<span key={label}>{label}</span>
+				))}
+			</div>
+			<div className="grid gap-3 sm:grid-cols-2">
+				{Object.entries(tier.breakdown).map(([service, cost]) => {
+					const percentage = cost === 0 ? 0 : (cost / tier.total) * 100;
+
+					return (
+						<div key={service} className="space-y-1">
+							<div className="flex items-center justify-between gap-3 text-sm">
+								<span className="font-bold text-[var(--sea-ink)]">
+									{SERVICE_LABELS[service]}
+								</span>
+								<span className="font-extrabold text-[var(--sea-ink)]">
+									${cost >= 1000 ? `${(cost / 1000).toFixed(1)}k` : cost}
+								</span>
+							</div>
+							<div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+								<div
+									className="h-full rounded-full bg-gradient-to-r from-[var(--lagoon)] to-[var(--lagoon-deep)]"
+									style={{ width: `${percentage}%` }}
+								/>
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</div>
+	);
+}
 
 function App() {
 	const [selectedMetric, setSelectedMetric] = useState<"revenue" | "expenses">(
@@ -254,6 +405,10 @@ function App() {
 				</section>
 			</div>
 
+			<section className="mt-8">
+				<AwsScaleSlider />
+			</section>
+
 			{/* Expense Spikes Alert */}
 			<section className="mt-8">
 				<div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 sm:p-6">
@@ -356,11 +511,15 @@ function RevenueExpenseChart({
 					const isHovered = hoveredIndex === index;
 
 					return (
-						<div
+						<button
+							type="button"
 							key={item.month}
-							className="relative flex flex-1 flex-col items-center"
+							className="relative flex flex-1 flex-col items-center appearance-none border-0 bg-transparent p-0"
+							aria-label={`${item.month}: revenue $${(item.revenue / 1000).toFixed(1)}k, expenses $${(item.expenses / 1000).toFixed(1)}k`}
 							onMouseEnter={() => setHoveredIndex(index)}
 							onMouseLeave={() => setHoveredIndex(null)}
+							onFocus={() => setHoveredIndex(index)}
+							onBlur={() => setHoveredIndex(null)}
 						>
 							{/* Tooltip */}
 							{isHovered && (
@@ -397,7 +556,7 @@ function RevenueExpenseChart({
 							<span className="text-xs font-bold text-[var(--sea-ink-soft)]">
 								{item.month}
 							</span>
-						</div>
+						</button>
 					);
 				})}
 			</div>

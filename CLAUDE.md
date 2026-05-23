@@ -1,62 +1,163 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
+
+## Current App
+
+This is **Runway AI CFO**, a TanStack Start prototype for startup runway planning. It lets a user connect mock/public cloud pricing, revenue, and banking sources, inspect cloud-cost and cash-flow dashboards, and ask an IBM watsonx.ai-backed CFO chat for what-if analysis.
+
+The repository has moved beyond the starter template. `README.md` still includes generic TanStack and Anthropic/Claude chat text, so use this file plus the source code as the current operating guide.
 
 ## Commands
 
 ```bash
-pnpm dev          # dev server on :3000
-pnpm build        # production build (Nitro server → dist/)
+pnpm dev          # Vite dev server, PORT env or 3000
+pnpm build        # production build via Vite/TanStack Start/Nitro, writes .output/
 pnpm preview      # preview production build
-pnpm test         # vitest run
-pnpm check        # biome lint + format (run before committing)
-pnpm lint         # biome lint only
-pnpm format       # biome format only
+pnpm test         # Vitest single run
+pnpm check        # Biome check (format + lint)
+pnpm lint         # Biome lint only
+pnpm format       # Biome format only
 ```
 
-Run a single test file: `pnpm vitest run src/path/to/file.test.ts`
+Husky `pre-commit` runs `pnpm build`.
 
-Add Shadcn components: `pnpm dlx shadcn@latest add <component>`
+Useful targeted commands:
 
-## Architecture
-
-**Stack:** TanStack Start (React 19 SSR framework) + TanStack Router (file-based routing) + TanStack Store (global state) + Tailwind CSS v4 + Nitro (server adapter) + Biome (lint/format).
-
-**App:** "Runway AI CFO" — a startup financial survival dashboard. Connects mock cloud/revenue/banking sources, shows cash flow charts, and runs AI what-if forecast scenarios.
-
-### Routing
-
-File-based via TanStack Router. `src/routeTree.gen.ts` is auto-generated — never edit it manually.
-
-- `src/routes/__root.tsx` — shell layout (Header, Footer, devtools, theme script)
-- `src/routes/index.tsx` — main dashboard (integration connect flow + forecast scenarios)
-- `src/routes/connect.tsx` — dedicated source connection page
-- `src/routes/mcp.ts` — MCP API route (`POST /mcp`), server-only
-
-### State
-
-`src/lib/runway-store.ts` — single TanStack Store tracking `connectedSourceIds[]`. Persisted to `localStorage` under key `runway-ai-cfo-state`. Dashboard unlocks when at least one cloud source AND one banking source are connected (`hasRequiredForecastSources`).
-
-### MCP Integration
-
-`src/routes/mcp.ts` registers an MCP server with tools (currently `addTodo`). `src/utils/mcp-handler.ts` handles each POST by creating an in-memory transport pair, running the request through the MCP server, and returning the JSON-RPC response.
-
-`src/mcp-todos.ts` holds the todo list state consumed by MCP tools.
-
-### Styling conventions
-
-Design tokens are CSS custom properties in `src/styles.css` (e.g. `--sea-ink`, `--lagoon-deep`, `--surface-strong`, `--line`). Use these rather than raw Tailwind colors for brand-consistent UI. Dark mode via `.dark` class on `<html>` (toggled by `src/components/ThemeToggle.tsx`, stored in `localStorage`).
-
-### Path aliases
-
-`#/*` maps to `src/*` (configured in `package.json` imports + `tsconfig.json`). Use `#/utils/...`, `#/lib/...` etc. in imports.
-
-### Demo files
-
-All files prefixed with `demo` (components, hooks, lib, data) are scaffolding examples — safe to delete.
-
-## Env
-
+```bash
+pnpm exec vitest run src/path/to/file.test.ts
+python -m unittest test_scraper_forecast.py
+python scraper.py --pricing-estimates --gcp-api-key-file=.gcp_api_key
+pnpm dlx shadcn@latest add <component>
 ```
-ANTHROPIC_API_KEY=   # required for AI features
+
+## Stack
+
+- TanStack Start + React 19 SSR
+- TanStack Router file routes
+- TanStack Store for lightweight client state
+- Vite 8, Nitro server adapter, Tailwind CSS v4
+- Biome for TypeScript lint/format
+- IBM watsonx.ai chat API on the server
+- Python scraper for cloud provider pricing datasets
+
+Path alias: `#/*` maps to `src/*` through `package.json`, `tsconfig.json`, and Vite `tsconfigPaths`.
+
+## Important Files
+
+- `src/routes/__root.tsx` - root HTML shell, stylesheet link, header/footer, theme bootstrap script, TanStack devtools.
+- `src/routes/index.tsx` - main Runway AI CFO experience: connection flow, pricing dataset panels, provider details, forecast scenarios.
+- `src/routes/connect.tsx` - dedicated source connection screen.
+- `src/routes/dashboard.tsx` - simpler static financial dashboard mock.
+- `src/routes/ai-cfo.tsx` - chat UI for runway, burn, spend, payout, and vendor questions.
+- `src/routes/api.ai-cfo.chat.ts` - server route for `POST /api/ai-cfo/chat`; calls IBM watsonx.ai.
+- `src/routes/mcp.ts` - MCP `POST /mcp` endpoint with an `addTodo` tool.
+- `src/utils/mcp-handler.ts` - in-memory transport bridge for MCP requests.
+- `src/lib/runway-store.ts` - connected source store with localStorage persistence.
+- `src/lib/provider-types.ts` - shared UI/data contracts.
+- `src/data/cloud-pricing/index.ts` - typed exports and helpers around generated pricing JSON.
+- `src/data/providers.ts` - converts generated pricing totals into `ProviderMock` values.
+- `src/styles.css` - global Tailwind v4 theme, app tokens, dark mode values, and reusable layout classes.
+- `scraper.py` - account-state and public pricing scraper/generator.
+- `test_scraper_forecast.py` - `unittest` suite for scraper forecast/pricing behavior.
+
+`src/routeTree.gen.ts` is generated by TanStack Router. Never edit it by hand.
+
+## Source And State Model
+
+Known source IDs:
+
+- Cloud: `aws`, `gcp`, `azure`, `cloudflare`
+- Revenue/banking: `stripe`, `banking`
+
+`runwayStore` tracks `connectedSourceIds` and persists to localStorage key `runway-ai-cfo-state`. `hasRequiredForecastSources(sourceIds)` returns true only when at least one cloud source and at least one banking/revenue source are connected. Header navigation, forecast unlocks, dashboard access, and AI CFO chat all depend on this gate.
+
+When changing source IDs, labels, or baseline financial assumptions, check every duplicated context:
+
+- integration arrays in `index.tsx` and `connect.tsx`
+- `dashboardData` in `dashboard.tsx`
+- `AI_CFO_CONTEXT` and baseline prompt text in `api.ai-cfo.chat.ts`
+- source label maps in `ai-cfo.tsx`
+
+## Cloud Pricing Data
+
+`src/data/cloud-pricing/` is the app's checked-in public pricing dataset:
+
+- `inputs.json` - editable scenario/config inputs, usage quantities, regions, and defaults.
+- `catalogue.json` - generated normalized public SKU catalogue.
+- `estimate.json` - generated forecast model with provider totals, service totals, monthly budget, scenarios, line items, unpriced rows, warnings, and coverage.
+- `README.md` - pricing data notes.
+
+Prefer changing `inputs.json` or scraper code, then regenerating generated outputs. Avoid manual edits to `catalogue.json` and `estimate.json` unless explicitly repairing fixtures.
+
+Regeneration:
+
+```bash
+python scraper.py --pricing-estimates --gcp-api-key-file=.gcp_api_key
 ```
+
+`scraper.py` also supports `--pricing` for legacy public scraping and no-flag account-state scraping. Account-state scraping requires provider credentials listed in the scraper docstring.
+
+## AI CFO Chat
+
+`api.ai-cfo.chat.ts` is server-only. It:
+
+- sanitizes the last 12 user/assistant messages
+- requires `IBM_API_KEY`
+- requires a watsonx project or space ID
+- requests and caches an IBM IAM token
+- sends a system prompt plus connected-source context to watsonx
+- tries `IBM_WATSONX_MODEL_ID` entries first, then built-in model fallbacks
+- returns `{ reply, model }` or a JSON error
+
+The client route (`ai-cfo.tsx`) posts to `/api/ai-cfo/chat` and renders markdown with `streamdown`. It currently receives a full JSON reply; it is not true token streaming.
+
+## MCP Endpoint
+
+`src/routes/mcp.ts` creates an MCP server named `start-server` and registers `addTodo`. `src/utils/mcp-handler.ts` creates a paired client/server in-memory transport for each POST and returns the JSON-RPC response. Todo storage is in process memory via `src/mcp-todos.ts`.
+
+## Styling And UI
+
+Use existing app tokens before adding new colors:
+
+- `--sea-ink`
+- `--sea-ink-soft`
+- `--lagoon`
+- `--lagoon-deep`
+- `--surface`
+- `--surface-strong`
+- `--line`
+- `--kicker`
+
+Reusable CSS classes include `page-wrap`, `display-title`, `island-shell`, and `island-kicker`. Dark mode is controlled by `.dark` on `<html>` and `ThemeToggle`; the root route includes an inline boot script to prevent theme flash.
+
+UI primitives live in `src/components/ui/` and follow shadcn-style patterns. Existing primitives include button, input, label, select, slider, switch, and textarea.
+
+## Code Style
+
+Use TypeScript and React function components. Biome uses tabs and double quotes for TypeScript/JavaScript. Some older files still have single quotes or relative imports; do not create broad style-only churn unless the task is formatting.
+
+Prefer `#/*` imports for source modules in new or touched code. Keep route filenames aligned with TanStack Router conventions. Generated files and checked-in generated pricing data should not be casually rewritten.
+
+Files prefixed `demo` or `demo.` are starter scaffolding unless still imported.
+
+## Environment
+
+```bash
+# AI CFO chat
+IBM_API_KEY=
+IBM_WATSONX_PROJECT_ID=        # or IBM_PROJECT_ID / WATSONX_PROJECT_ID
+IBM_WATSONX_SPACE_ID=          # alternative to project ID
+IBM_WATSONX_URL=https://eu-de.ml.cloud.ibm.com
+IBM_WATSONX_MODEL_ID=          # optional comma-separated fallback list
+IBM_WATSONX_API_VERSION=2024-05-31
+
+# Dev server
+PORT=3000
+```
+
+`.env` and `.gcp_api_key` are local-only. Do not commit secrets or log IBM tokens, provider credentials, request bodies with finance context, or raw provider account responses.
+
+## Testing Guidance
+
+Run `pnpm test` for TypeScript/Vitest changes and `python -m unittest test_scraper_forecast.py` for scraper changes. Add focused tests for store behavior, data helpers, server route logic, and user-visible UI changes. For UI changes, also run `pnpm build` because Husky will enforce it.
