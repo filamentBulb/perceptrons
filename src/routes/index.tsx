@@ -245,43 +245,16 @@ function ConnectSources() {
 
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
-			<section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-				<div>
-					<p className="island-kicker mb-3">Public pricing setup</p>
-					<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
-						Choose public cloud pricing sources.
-					</h1>
-					<p className="mb-7 max-w-2xl text-base leading-7 text-[var(--sea-ink-soft)] sm:text-lg">
-						Use official retail pricing APIs and docs to prepare a hypothetical
-						cloud budget forecast. No provider account credentials are needed.
-					</p>
-					<ForecastLink enabled={canOpenForecasts} />
-				</div>
-
-				<div className="island-shell rounded-2xl p-4 sm:p-5">
-					<div className="mb-4 flex items-center justify-between gap-3">
-						<div>
-							<p className="island-kicker mb-1">Pricing source status</p>
-							<h2 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-								{connected.length}/{integrations.length} sources selected
-							</h2>
-						</div>
-						<ShieldCheck className="text-emerald-600" size={28} />
-					</div>
-					<div className="h-3 overflow-hidden rounded-full bg-[rgba(23,58,64,0.12)]">
-						<div
-							className="h-full rounded-full bg-emerald-500"
-							style={{
-								width: `${(connected.length / integrations.length) * 100}%`,
-							}}
-						/>
-					</div>
-					<p className="m-0 mt-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
-						The forecast page reads generated JSON from scraper.py
-						--pricing-estimates for budget, cost-driver, and scenario
-						simulations.
-					</p>
-				</div>
+			<section className="mb-10">
+				<p className="island-kicker mb-3">Public pricing setup</p>
+				<h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-6xl">
+					Choose public cloud pricing sources.
+				</h1>
+				<p className="mb-7 max-w-2xl text-base leading-7 text-[var(--sea-ink-soft)] sm:text-lg">
+					Use official retail pricing APIs and docs to prepare a hypothetical
+					cloud budget forecast. No provider account credentials are needed.
+				</p>
+				<ForecastLink enabled={canOpenForecasts} />
 			</section>
 
 			<section className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -331,25 +304,6 @@ function ConnectSources() {
 				})}
 			</section>
 
-			{connectedIntegrations.length > 0 ? (
-				<section className="mt-10">
-					<div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-						<div>
-							<p className="island-kicker mb-2">Selected pricing sources</p>
-							<h2 className="m-0 text-2xl font-extrabold text-[var(--sea-ink)]">
-								Data ready for public-price forecasts
-							</h2>
-						</div>
-						<ForecastLink enabled={canOpenForecasts} />
-					</div>
-					<div className="grid gap-4 lg:grid-cols-2">
-						{connectedIntegrations.map((integration) => (
-							<DataPanel integration={integration} key={integration.id} />
-						))}
-					</div>
-				</section>
-			) : null}
-
 			{active ? (
 				<ConnectionModal
 					integration={active}
@@ -372,68 +326,6 @@ function SyncedPreview({ integration }: { integration: Integration }) {
 				{integration.summary}
 			</p>
 		</div>
-	);
-}
-
-function DataPanel({ integration }: { integration: Integration }) {
-	const Icon = integration.icon;
-
-	return (
-		<article className="island-shell rounded-2xl p-4 sm:p-5">
-			<div className="mb-4 flex items-start justify-between gap-3">
-				<div className="flex gap-3">
-					<div className="grid h-10 w-10 place-items-center rounded-lg bg-[var(--sea-ink)] text-white">
-						<Icon size={19} />
-					</div>
-					<div>
-						<p className="island-kicker mb-1">{integration.category}</p>
-						<h3 className="m-0 text-lg font-extrabold text-[var(--sea-ink)]">
-							{integration.name}
-						</h3>
-					</div>
-				</div>
-				<span className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-200">
-					Selected
-				</span>
-			</div>
-
-			<div className="mb-4 grid gap-2 sm:grid-cols-3">
-				{integration.stats.map(([label, value]) => (
-					<div
-						className="rounded-lg border border-[var(--line)] bg-white/55 p-3 dark:bg-white/5"
-						key={label}
-					>
-						<p className="m-0 text-xs font-bold text-[var(--sea-ink-soft)]">
-							{label}
-						</p>
-						<p className="m-0 mt-1 text-lg font-extrabold text-[var(--sea-ink)]">
-							{value}
-						</p>
-					</div>
-				))}
-			</div>
-
-			<div className="space-y-2">
-				{integration.services.map(([name, count, spend]) => (
-					<div
-						className="flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-white/50 p-3 dark:bg-white/5"
-						key={name}
-					>
-						<div>
-							<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-								{name}
-							</p>
-							<p className="m-0 mt-1 text-xs text-[var(--sea-ink-soft)]">
-								{count}
-							</p>
-						</div>
-						<p className="m-0 text-right text-sm font-extrabold text-[var(--sea-ink)]">
-							{spend}
-						</p>
-					</div>
-				))}
-			</div>
-		</article>
 	);
 }
 
