@@ -280,29 +280,41 @@ ${events}`;
 		.join("\n\n");
 	const startupDatasetContext = buildStartupDatasetContext();
 	const cloudPricingContext = buildCloudPricingContext(isUserGrowthQuestion);
+	const sourceBoundaryGuidance = isUserGrowthQuestion
+		? "Do not invent bank balances, provider names, or precise figures beyond this context. If a number is directional, say directional in-line and keep moving."
+		: "Do not invent bank balances, provider names, or precise figures beyond this context unless you clearly label them as assumptions.";
+	const answerGuidance = isUserGrowthQuestion
+		? `- 4-7 short bullets maximum
+- a short direct answer first
+- pricing and cash impact before technical detail
+- a "Next steps" section with 2-4 specific actions
+- do not include a final caveat or a separate list about unknowns`
+		: `- 4-7 short bullets maximum
+- a short direct answer first
+- pricing and cash impact before technical detail
+- 2-4 specific actions
+- any assumptions or missing source caveats in one final bullet`;
+	const pricingContextLabel = isUserGrowthQuestion
+		? "Pricing context"
+		: "Pricing assumptions";
 	const growthQuestionInstructions = isUserGrowthQuestion
 		? `
 Exact question mode:
 - The user asked: "What happens if our users grow from 100k to 1 million?"
-- Assume the current plan is vertical scaling: the company keeps buying larger single machines/plans and usage grows roughly 10x with users.
-- Start the answer with burn rate and runway impact in months and days before any scaling advice. Use current cash, minimum reserve, revenue, payroll, and cloud/vendor outflow from the baseline; clearly label the 1M-user runway as directional.
-- Explain that vertical scaling is simpler but can make the bill jump close to 10x and creates a single capacity ceiling.
-- Give horizontal scaling suggestions: split load across more smaller servers, autoscale workers, cache more traffic at the edge, move batch jobs off peak hours, and set monthly spend alerts.
-- Include a compact cost comparison using cloud-pricing assumptions: current public-pricing baseline, 10x vertical estimate, and a horizontal estimate that targets 15-30% lower than the pure 10x case through autoscaling/cache/batch scheduling.
+- Start the answer with burn rate and runway impact in months and days. Use current cash, minimum reserve, revenue, payroll, and cloud/vendor outflow from the baseline; describe the 1M-user runway as directional.
+- Include a compact cost comparison using the current public-pricing baseline and the 1M-user public-pricing estimate.
 - Tell the user that at 1 million users, enterprise contracts and committed-use discounts can lower cloud prices. Use a directional 10-35% discount range unless the context provides a provider-specific commitment; explain that the exact discount depends on provider, contract length, and minimum spend.
+- End with a "Next steps" section that names immediate finance and vendor actions.
+- Do not compare named server-scaling strategies or include a separate list about unknowns.
 - Do not discuss infrastructure jargon unless immediately translated into plain pricing language.`
 		: "";
 
 	return `You are Runway AI CFO, a concise finance and infrastructure advisor for a startup.
 
-Use the full startup dataset, provider, and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat the structured startup dataset as the canonical demo company numbers. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. If older provider context conflicts with the structured startup dataset, use the structured startup dataset. Do not invent bank balances, provider names, or precise figures beyond this context unless you clearly label them as assumptions.
+Use the full startup dataset, provider, and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat the structured startup dataset as the canonical demo company numbers. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. If older provider context conflicts with the structured startup dataset, use the structured startup dataset. ${sourceBoundaryGuidance}
 
 Answer in markdown. Prefer:
-- 4-7 short bullets maximum
-- a short direct answer first
-- pricing and cash impact before technical detail
-- 2-4 specific actions
-- any assumptions or missing source caveats in one final bullet
+${answerGuidance}
 
 Audience:
 - Write for a non-technical founder/CFO.
@@ -310,7 +322,7 @@ Audience:
 - Avoid unexplained cloud terms like EC2, ECS, VM, Kubernetes, vCPU, SKU, or LCU. If a source uses those terms, translate them into plain cost categories.
 - Keep responses compact and direct. Do not give long tutorials.
 
-Pricing assumptions:
+${pricingContextLabel}:
 - For all cloud-cost answers, use src/data/cloud-pricing as the pricing baseline.
 - Treat catalogue prices as public unit prices for the selected regions.
 - If a service is unpriced or estimated in the catalogue, say the number is directional.
@@ -343,14 +355,11 @@ ${providerContext}`;
 function buildCloudPricingContext(includeGrowthScenario: boolean) {
 	const summary = cloudPricingEstimate.summary;
 	const tenXMonthlyCost = summary.currentMonthlyCost * 10;
-	const horizontalLow = tenXMonthlyCost * 0.7;
-	const horizontalHigh = tenXMonthlyCost * 0.85;
 	const growthScenario = includeGrowthScenario
 		? `
 100k to 1M user scenario anchors:
 - User growth factor: 10x
-- Vertical scaling directional cost: about ${formatPricingUsd(tenXMonthlyCost)}/mo before optimization
-- Horizontal scaling target range: about ${formatPricingUsd(horizontalLow)}-${formatPricingUsd(horizontalHigh)}/mo if autoscaling, caching, and off-peak jobs reduce waste`
+- 1M-user public-pricing estimate: about ${formatPricingUsd(tenXMonthlyCost)}/mo before enterprise discounts`
 		: "";
 	const regions = Object.entries(cloudPricingCatalogue.regions)
 		.map(([provider, region]) => `${providerLabel(provider)} ${region}`)
@@ -379,7 +388,7 @@ Catalogue coverage: ${cloudPricingDatasetSummary.priceCoveragePct}% priced, ${cl
 ${growthScenario}
 Provider baseline:
 ${providerTotals}
-Largest public-pricing assumptions:
+Largest public-pricing line items:
 ${topLines}`;
 }
 
