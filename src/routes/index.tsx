@@ -6,6 +6,7 @@ import {
 	Cloud,
 	CreditCard,
 	ExternalLink,
+	Landmark,
 	Loader2,
 	Server,
 	ShieldCheck,
@@ -13,7 +14,11 @@ import {
 	Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { connectRunwaySource, runwayStore } from "../lib/runway-store";
+import {
+	connectRunwaySource,
+	disconnectRunwaySource,
+	runwayStore,
+} from "../lib/runway-store";
 
 export const Route = createFileRoute("/")({
 	component: ConnectSources,
@@ -35,7 +40,7 @@ type Integration = {
 const integrations: Integration[] = [
 	{
 		id: "aws",
-		name: "Amazon Web Services",
+		name: "AWS",
 		category: "Cloud",
 		detail: "EC2, ECS Fargate, CloudWatch Logs, S3, ALB public prices",
 		authLabel: "AWS Price List Bulk API",
@@ -154,6 +159,27 @@ const integrations: Integration[] = [
 			["Fees/refunds", "2.8% fees", "$9,360 out"],
 		],
 	},
+	{
+		id: "bank",
+		name: "Bank Account",
+		category: "Revenue",
+		detail: "Operating balance, incoming transfers, business deposits",
+		authLabel: "Bank Account Connection",
+		icon: Landmark,
+		scopes: ["Account Balance", "Incoming Transfers", "Deposits", "Statements"],
+		summary: "Bank account shows incoming revenue and cash deposits.",
+		stats: [
+			["Current balance", "$410,000"],
+			["Monthly deposits", "$156,800"],
+			["Average inflow", "$52,200"],
+		],
+		services: [
+			["Business deposits", "Weekly", "$156,800 in"],
+			["Wire transfers", "12 received", "$89,400 in"],
+			["ACH payments", "48 received", "$67,400 in"],
+			["Account balance", "Available", "$410,000"],
+		],
+	},
 ];
 
 function ForecastLink({ enabled }: { enabled: boolean }) {
@@ -197,12 +223,19 @@ function ConnectSources() {
 	const hasConnectedCloud = connectedIntegrations.some(
 		(integration) => integration.category === "Cloud",
 	);
-	const canOpenForecasts = hasConnectedCloud;
+	const hasConnectedRevenue = connectedIntegrations.some(
+		(integration) => integration.category === "Revenue",
+	);
+	const canOpenForecasts = hasConnectedCloud && hasConnectedRevenue;
 
-	const openModal = (integration: Integration) => {
-		if (connected.includes(integration.id)) return;
-		setActive(integration);
-		setStep(0);
+	const toggleConnection = (integration: Integration) => {
+		const isConnected = connected.includes(integration.id);
+		if (isConnected) {
+			disconnectRunwaySource(integration.id);
+		} else {
+			setActive(integration);
+			setStep(0);
+		}
 	};
 
 	const advance = () => {
@@ -216,60 +249,129 @@ function ConnectSources() {
 		setStep(0);
 	};
 
+	const expenseIntegrations = integrations.filter(
+		(integration) => integration.category === "Cloud",
+	);
+	const revenueIntegrations = integrations.filter(
+		(integration) => integration.category === "Revenue",
+	);
+
 	return (
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="mb-10 text-center">
 				<h1 className="display-title mb-5 text-3xl leading-[1.02] font-bold text-[var(--sea-ink)] sm:text-4xl">
-					Choose public cloud pricing sources.
+					Connect your data sources
 				</h1>
 				<ForecastLink enabled={canOpenForecasts} />
 			</section>
 
-			<section className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				{integrations.map((integration) => {
-					const Icon = integration.icon;
-					const isConnected = connected.includes(integration.id);
+			<section className="mt-10 grid gap-8 lg:grid-cols-2">
+				{/* Expenses Column */}
+				<div>
+					<h2 className="mb-4 text-xl font-extrabold text-[var(--sea-ink)]">
+						Expenses
+					</h2>
+					<div className="space-y-3">
+						{expenseIntegrations.map((integration) => {
+							const isConnected = connected.includes(integration.id);
 
-					return (
-						<article
-							className="feature-card rounded-lg p-4"
-							key={integration.id}
-						>
-							<div className="mb-4 flex items-start justify-between gap-3">
-								<div className="flex gap-3">
-									<div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] bg-white/70 text-[var(--lagoon-deep)] dark:bg-white/10">
-										<Icon size={19} />
+							return (
+								<article
+									className="feature-card rounded-lg p-4"
+									key={integration.id}
+								>
+									<div className="mb-4 flex items-start justify-between gap-3">
+										<div>
+											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
+												{integration.name}
+											</h3>
+										</div>
+										{isConnected ? (
+											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
+												<Check size={16} />
+											</span>
+										) : null}
 									</div>
-									<div>
-										<p className="m-0 text-xs font-extrabold uppercase text-[var(--kicker)]">
-											{integration.category}
-										</p>
-										<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
-											{integration.name}
-										</h3>
+									<p className="mb-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
+										{integration.detail}
+									</p>
+									{isConnected ? (
+										<SyncedPreview integration={integration} />
+									) : null}
+									<button
+										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+											isConnected
+												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
+												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
+										}`}
+										onClick={() => toggleConnection(integration)}
+										type="button"
+									>
+										{isConnected ? "Deselect" : "Select"}
+									</button>
+								</article>
+							);
+						})}
+					</div>
+				</div>
+
+				{/* Funding/Revenue Column */}
+				<div>
+					<h2 className="mb-4 text-xl font-extrabold text-[var(--sea-ink)]">
+						Funding/Revenue
+					</h2>
+					<div className="space-y-3">
+						{revenueIntegrations.map((integration) => {
+							const Icon = integration.icon;
+							const isConnected = connected.includes(integration.id);
+
+							return (
+								<article
+									className="feature-card rounded-lg p-4"
+									key={integration.id}
+								>
+									<div className="mb-4 flex items-start justify-between gap-3">
+										<div className="flex gap-3">
+											<div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] bg-white/70 text-[var(--lagoon-deep)] dark:bg-white/10">
+												<Icon size={19} />
+											</div>
+											<div>
+												<p className="m-0 text-xs font-extrabold uppercase text-[var(--kicker)]">
+													{integration.category}
+												</p>
+												<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
+													{integration.name}
+												</h3>
+											</div>
+										</div>
+										{isConnected ? (
+											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
+												<Check size={16} />
+											</span>
+										) : null}
 									</div>
-								</div>
-								{isConnected ? (
-									<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
-										<Check size={16} />
-									</span>
-								) : null}
-							</div>
-							<p className="mb-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
-								{integration.detail}
-							</p>
-							{isConnected ? <SyncedPreview integration={integration} /> : null}
-							<button
-								className="mt-3 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5 disabled:cursor-default disabled:border-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-900 disabled:hover:translate-y-0 dark:disabled:border-emerald-400 dark:disabled:bg-emerald-900 dark:disabled:text-emerald-50"
-								disabled={isConnected}
-								onClick={() => openModal(integration)}
-								type="button"
-							>
-								{isConnected ? "Selected" : "Select"}
-							</button>
-						</article>
-					);
-				})}
+									<p className="mb-4 text-sm leading-6 text-[var(--sea-ink-soft)]">
+										{integration.detail}
+									</p>
+									{isConnected ? (
+										<SyncedPreview integration={integration} />
+									) : null}
+									<button
+										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+											isConnected
+												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
+												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
+										}`}
+										onClick={() => toggleConnection(integration)}
+										type="button"
+									>
+										{isConnected ? "Deselect" : "Select"}
+									</button>
+								</article>
+							);
+						})}
+					</div>
+				</div>
 			</section>
 
 			{active ? (
