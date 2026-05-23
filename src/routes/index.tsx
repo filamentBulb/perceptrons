@@ -40,7 +40,7 @@ type Integration = {
 const integrations: Integration[] = [
 	{
 		id: "aws",
-		name: "Amazon Web Services",
+		name: "AWS",
 		category: "Cloud",
 		detail: "EC2, ECS Fargate, CloudWatch Logs, S3, ALB public prices",
 		authLabel: "AWS Price List Bulk API",
@@ -273,7 +273,6 @@ function ConnectSources() {
 					</h2>
 					<div className="space-y-3">
 						{expenseIntegrations.map((integration) => {
-							const Icon = integration.icon;
 							const isConnected = connected.includes(integration.id);
 
 							return (
@@ -282,18 +281,10 @@ function ConnectSources() {
 									key={integration.id}
 								>
 									<div className="mb-4 flex items-start justify-between gap-3">
-										<div className="flex gap-3">
-											<div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] bg-white/70 text-[var(--lagoon-deep)] dark:bg-white/10">
-												<Icon size={19} />
-											</div>
-											<div>
-												<p className="m-0 text-xs font-extrabold uppercase text-[var(--kicker)]">
-													{integration.category}
-												</p>
-												<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
-													{integration.name}
-												</h3>
-											</div>
+										<div>
+											<h3 className="m-0 text-base font-extrabold text-[var(--sea-ink)]">
+												{integration.name}
+											</h3>
 										</div>
 										{isConnected ? (
 											<span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 text-white">
