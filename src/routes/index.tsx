@@ -14,7 +14,11 @@ import {
 	Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { connectRunwaySource, runwayStore } from "../lib/runway-store";
+import {
+	connectRunwaySource,
+	disconnectRunwaySource,
+	runwayStore,
+} from "../lib/runway-store";
 
 export const Route = createFileRoute("/")({
 	component: ConnectSources,
@@ -219,12 +223,19 @@ function ConnectSources() {
 	const hasConnectedCloud = connectedIntegrations.some(
 		(integration) => integration.category === "Cloud",
 	);
-	const canOpenForecasts = hasConnectedCloud;
+	const hasConnectedRevenue = connectedIntegrations.some(
+		(integration) => integration.category === "Revenue",
+	);
+	const canOpenForecasts = hasConnectedCloud && hasConnectedRevenue;
 
-	const openModal = (integration: Integration) => {
-		if (connected.includes(integration.id)) return;
-		setActive(integration);
-		setStep(0);
+	const toggleConnection = (integration: Integration) => {
+		const isConnected = connected.includes(integration.id);
+		if (isConnected) {
+			disconnectRunwaySource(integration.id);
+		} else {
+			setActive(integration);
+			setStep(0);
+		}
 	};
 
 	const advance = () => {
@@ -297,12 +308,15 @@ function ConnectSources() {
 										<SyncedPreview integration={integration} />
 									) : null}
 									<button
-										className="mt-3 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5 disabled:cursor-default disabled:border-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-900 disabled:hover:translate-y-0 dark:disabled:border-emerald-400 dark:disabled:bg-emerald-900 dark:disabled:text-emerald-50"
-										disabled={isConnected}
-										onClick={() => openModal(integration)}
+										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+											isConnected
+												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
+												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
+										}`}
+										onClick={() => toggleConnection(integration)}
 										type="button"
 									>
-										{isConnected ? "Selected" : "Select"}
+										{isConnected ? "Deselect" : "Select"}
 									</button>
 								</article>
 							);
@@ -352,12 +366,15 @@ function ConnectSources() {
 										<SyncedPreview integration={integration} />
 									) : null}
 									<button
-										className="mt-3 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-sm font-extrabold text-[var(--sea-ink)] hover:-translate-y-0.5 disabled:cursor-default disabled:border-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-900 disabled:hover:translate-y-0 dark:disabled:border-emerald-400 dark:disabled:bg-emerald-900 dark:disabled:text-emerald-50"
-										disabled={isConnected}
-										onClick={() => openModal(integration)}
+										className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm font-extrabold transition-all hover:-translate-y-0.5 ${
+											isConnected
+												? "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-900 dark:text-emerald-50"
+												: "border-[var(--line)] bg-[var(--surface-strong)] text-[var(--sea-ink)]"
+										}`}
+										onClick={() => toggleConnection(integration)}
 										type="button"
 									>
-										{isConnected ? "Selected" : "Select"}
+										{isConnected ? "Deselect" : "Select"}
 									</button>
 								</article>
 							);
