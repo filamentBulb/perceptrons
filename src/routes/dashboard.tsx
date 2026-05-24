@@ -408,7 +408,7 @@ function RevenueExpenseChart({
 						<button
 							type="button"
 							key={item.month}
-							className="relative flex flex-1 flex-col items-center appearance-none border-0 bg-transparent p-0"
+							className="relative flex h-full flex-1 flex-col items-center appearance-none border-0 bg-transparent p-0"
 							aria-label={`${item.month}: revenue $${(item.revenue / 1000).toFixed(1)}k, expenses $${(item.expenses / 1000).toFixed(1)}k`}
 							onMouseEnter={() => setHoveredIndex(index)}
 							onMouseLeave={() => setHoveredIndex(null)}
@@ -434,22 +434,22 @@ function RevenueExpenseChart({
 								</div>
 							)}
 
-							<div className="relative mb-2 flex w-full gap-0.5">
+							<div className="relative flex w-full flex-1 items-end">
 								{selectedMetric === "revenue" && (
 									<div
 										className="w-full rounded-t-sm bg-emerald-500 transition-all hover:bg-emerald-600"
-										style={{ height: `${revenueHeight * 2.8}px` }}
+										style={{ height: `${revenueHeight}%` }}
 									/>
 								)}
 								{selectedMetric === "expenses" && (
 									<div
 										className="w-full rounded-t-sm bg-red-500 transition-all hover:bg-red-600"
-										style={{ height: `${expenseHeight * 2.8}px` }}
+										style={{ height: `${expenseHeight}%` }}
 									/>
 								)}
 							</div>
 
-							<span className="text-xs font-bold text-[var(--sea-ink-soft)]">
+							<span className="mt-2 text-xs font-bold text-[var(--sea-ink-soft)]">
 								{item.month}
 							</span>
 						</button>
