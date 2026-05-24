@@ -120,7 +120,7 @@ function AiCfoChatScreen() {
 				{
 					id: crypto.randomUUID(),
 					role: "assistant",
-					content: `${fallbackMessage} Check the IBM watsonx project/space configuration on the server.`,
+					content: fallbackMessage,
 				},
 			]);
 		} finally {

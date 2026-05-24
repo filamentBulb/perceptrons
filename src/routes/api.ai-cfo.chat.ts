@@ -127,12 +127,14 @@ async function askWatsonxAiCfo(
 		process.env.IBM_WATSONX_SPACE_ID ?? process.env.WATSONX_SPACE_ID;
 
 	if (!apiKey) {
-		throw new Error("IBM_API_KEY is not configured.");
+		throw new Error(
+			"IBM_API_KEY is not configured. Set a valid IBM Cloud API key in the server environment.",
+		);
 	}
 
 	if (!projectId && !spaceId) {
 		throw new Error(
-			"IBM_WATSONX_PROJECT_ID or IBM_WATSONX_SPACE_ID is required for watsonx.ai chat.",
+			"IBM_WATSONX_PROJECT_ID or IBM_WATSONX_SPACE_ID is required for watsonx.ai chat. Set one IBM watsonx project or space ID in the server environment.",
 		);
 	}
 
@@ -233,9 +235,12 @@ async function getIamAccessToken(apiKey: string) {
 	};
 
 	if (!response.ok || !result.access_token) {
-		throw new Error(
+		const errorMessage =
 			result.errorMessage ??
-				`IBM IAM token request failed with ${response.status}.`,
+			`IBM IAM token request failed with ${response.status}.`;
+
+		throw new Error(
+			`IBM_API_KEY was rejected by IBM IAM: ${errorMessage} Generate a new IBM Cloud API key or update the server environment with an active key.`,
 		);
 	}
 
