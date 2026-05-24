@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/ai-cfo/chat")({
 					return Response.json(result);
 				} catch (error) {
 					const message =
-						error instanceof Error ? error.message : "AI CFO request failed.";
+						error instanceof Error ? error.message : "AI Cloud CFO request failed.";
 
 					return Response.json({ error: message }, { status: 500 });
 				}
@@ -509,7 +509,7 @@ Exact question mode:
 - Do not discuss infrastructure jargon unless immediately translated into plain pricing language.`
 		: "";
 
-	return `You are Runway AI CFO, a concise finance and infrastructure advisor for a startup.
+	return `You are Runway AI Cloud CFO, a concise finance and infrastructure advisor for a startup.
 
 Use the full startup dataset, provider, and banking context below to answer cash runway, burn, cloud cost, revenue, payout, and what-if questions. Treat the structured startup dataset as the canonical demo company numbers. Treat connected sources as live-authorized context and available sources as known planning context from the product prototype. If older provider context conflicts with the structured startup dataset, use the structured startup dataset. ${sourceBoundaryGuidance}
 

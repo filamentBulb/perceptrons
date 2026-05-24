@@ -59,7 +59,7 @@ export default function Header() {
 							setShowConnectToast(true);
 						}}
 					>
-						AI CFO
+						AI Cloud CFO
 					</Link>
 				</div>
 

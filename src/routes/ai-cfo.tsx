@@ -98,7 +98,7 @@ function AiCfoChatScreen() {
 				const errorBody = (await response.json().catch(() => ({}))) as {
 					error?: string;
 				};
-				throw new Error(errorBody.error ?? "AI CFO request failed");
+				throw new Error(errorBody.error ?? "AI Cloud CFO request failed");
 			}
 
 			const body = (await response.json()) as { reply?: string };
@@ -114,7 +114,7 @@ function AiCfoChatScreen() {
 			]);
 		} catch (error) {
 			const fallbackMessage =
-				error instanceof Error ? error.message : "The AI CFO request failed.";
+				error instanceof Error ? error.message : "The AI Cloud CFO request failed.";
 			setMessages((current) => [
 				...current,
 				{
@@ -132,7 +132,7 @@ function AiCfoChatScreen() {
 		<main className="page-wrap px-4 pb-8 pt-8">
 			<section className="grid min-h-[calc(100vh-156px)] gap-4 lg:grid-cols-[0.34fr_0.66fr]">
 				<aside className="island-shell rounded-2xl p-4 sm:p-5">
-					<p className="island-kicker mb-2">AI CFO workspace</p>
+					<p className="island-kicker mb-2">AI Cloud CFO workspace</p>
 					<h1 className="display-title m-0 text-3xl leading-tight font-bold text-[var(--sea-ink)] sm:text-4xl">
 						Ask finance questions in context.
 					</h1>
@@ -188,7 +188,7 @@ function AiCfoChatScreen() {
 						<div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-100/70 p-4 dark:bg-amber-950/40">
 							<p className="m-0 text-sm font-extrabold text-amber-900 dark:text-amber-100">
 								Connect at least one cloud provider and one bank source before
-								asking AI CFO questions.
+								asking AI Cloud CFO questions.
 							</p>
 							<Link
 								className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[var(--sea-ink)] px-3 py-2 text-sm font-extrabold text-white no-underline"
@@ -209,16 +209,13 @@ function AiCfoChatScreen() {
 							</div>
 							<div>
 								<p className="m-0 text-sm font-extrabold text-[var(--sea-ink)]">
-									AI CFO
+									AI Cloud CFO
 								</p>
 								<p className="m-0 text-xs font-bold text-[var(--sea-ink-soft)]">
 									Runway, burn, revenue, spend, and liquidity advisor
 								</p>
 							</div>
 						</div>
-						<span className="hidden rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-extrabold text-emerald-700 dark:text-emerald-200 sm:inline-flex">
-							Ready for LLM API
-						</span>
 					</div>
 
 					<div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
@@ -228,7 +225,7 @@ function AiCfoChatScreen() {
 						{isSending ? (
 							<div className="flex items-center gap-2 text-sm font-bold text-[var(--sea-ink-soft)]">
 								<Loader2 className="animate-spin" size={16} />
-								AI CFO is building an answer...
+								AI Cloud CFO is building an answer...
 							</div>
 						) : null}
 						<div ref={messagesEndRef} />
@@ -257,7 +254,7 @@ function AiCfoChatScreen() {
 								value={input}
 							/>
 							<button
-								aria-label="Send AI CFO message"
+								aria-label="Send AI Cloud CFO message"
 								className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[var(--sea-ink)] text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
 								disabled={!input.trim() || isSending || !canAskAiCfo}
 								type="submit"
