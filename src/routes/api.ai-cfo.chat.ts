@@ -48,6 +48,8 @@ const WATSONX_MODEL_IDS = uniqueModelIds([
 	"meta-llama/llama-3-8b-instruct",
 ]);
 const WATSONX_API_VERSION = process.env.IBM_WATSONX_API_VERSION ?? "2024-05-31";
+const LOCAL_FALLBACK_MODEL = "local-runway-cfo-fallback";
+const MINIMUM_CASH_RESERVE_USD = 120_000;
 
 let cachedIamToken: {
 	accessToken: string;
@@ -71,7 +73,7 @@ export const Route = createFileRoute("/api/ai-cfo/chat")({
 				try {
 					const body = (await request.json()) as {
 						messages?: ChatMessage[];
-						connectedSourceIds?: string[];
+						connectedSourceIds?: unknown;
 					};
 
 					const messages = sanitizeMessages(body.messages ?? []);
@@ -82,10 +84,13 @@ export const Route = createFileRoute("/api/ai-cfo/chat")({
 						);
 					}
 
+					const connectedSourceIds = sanitizeConnectedSourceIds(
+						body.connectedSourceIds,
+					);
 					const result = await askWatsonxAiCfo(
 						messages,
-						body.connectedSourceIds ?? [],
-					);
+						connectedSourceIds,
+					).catch(() => buildLocalAiCfoReply(messages, connectedSourceIds));
 
 					return Response.json(result);
 				} catch (error) {
@@ -112,6 +117,15 @@ function sanitizeMessages(messages: ChatMessage[]) {
 			role: message.role,
 			content: message.content.trim(),
 		}));
+}
+
+function sanitizeConnectedSourceIds(sourceIds: unknown) {
+	if (!Array.isArray(sourceIds)) return [];
+
+	return sourceIds.filter(
+		(sourceId): sourceId is string =>
+			typeof sourceId === "string" && sourceId.trim().length > 0,
+	);
 }
 
 async function askWatsonxAiCfo(
@@ -208,6 +222,187 @@ async function askWatsonxAiCfo(
 	throw new Error(
 		`No configured watsonx chat model was available. Tried: ${modelErrors.join(" | ")}`,
 	);
+}
+
+function buildLocalAiCfoReply(
+	messages: ChatMessage[],
+	connectedSourceIds: string[],
+) {
+	const latestQuestion = latestUserMessageContent(messages);
+
+	return {
+		reply: buildLocalAiCfoAnswer(latestQuestion, connectedSourceIds),
+		model: LOCAL_FALLBACK_MODEL,
+		simulated: true,
+	};
+}
+
+function buildLocalAiCfoAnswer(question: string, connectedSourceIds: string[]) {
+	const normalizedQuestion = question.toLowerCase();
+
+	if (isUserGrowthQuestion(normalizedQuestion)) {
+		return buildGrowthFallbackAnswer();
+	}
+
+	if (isAiInferenceQuestion(normalizedQuestion)) {
+		return buildAiInferenceFallbackAnswer();
+	}
+
+	if (isStripePayoutQuestion(normalizedQuestion)) {
+		return buildStripePayoutFallbackAnswer();
+	}
+
+	if (isCostCutQuestion(normalizedQuestion)) {
+		return buildCostCutFallbackAnswer();
+	}
+
+	return buildGenericFallbackAnswer(connectedSourceIds);
+}
+
+function isUserGrowthQuestion(question: string) {
+	return (
+		(question.includes("100k") || question.includes("100,000")) &&
+		(question.includes("1 million") || question.includes("1m"))
+	);
+}
+
+function isAiInferenceQuestion(question: string) {
+	return (
+		(question.includes("ai") ||
+			question.includes("inference") ||
+			question.includes("token")) &&
+		(question.includes("double") ||
+			question.includes("doubles") ||
+			question.includes("2x"))
+	);
+}
+
+function isStripePayoutQuestion(question: string) {
+	return (
+		question.includes("stripe") &&
+		(question.includes("payout") ||
+			question.includes("delay") ||
+			question.includes("delayed"))
+	);
+}
+
+function isCostCutQuestion(question: string) {
+	return (
+		question.includes("cut") ||
+		question.includes("reduce") ||
+		question.includes("cost driver") ||
+		question.includes("optimize")
+	);
+}
+
+function buildGrowthFallbackAnswer() {
+	const baselineNetBurn = startupDataset.businessMetrics.netBurnUsd;
+	const baselineReserveRunway = runwayUntilReserveMonths(baselineNetBurn);
+	const currentCloudSpend = latestCloudSpend();
+	const oneMillionCloudSpend = currentCloudSpend * 10;
+	const oneMillionNetBurn =
+		baselineNetBurn + (oneMillionCloudSpend - currentCloudSpend);
+	const oneMillionRunway = runwayUntilReserveMonths(oneMillionNetBurn);
+	const publicPricingBaseline = cloudPricingEstimate.summary.currentMonthlyCost;
+	const publicPricingOneMillion = publicPricingBaseline * 10;
+	const discountLow = publicPricingOneMillion * 0.65;
+	const discountHigh = publicPricingOneMillion * 0.9;
+
+	return `Using the local Runway dataset: burn would move from ${formatStartupUsd(baselineNetBurn)}/mo to roughly ${formatStartupUsd(oneMillionNetBurn)}/mo if the current full cloud bill scaled linearly to 1 million users, cutting reserve runway from ${formatRunway(baselineReserveRunway)} to about ${formatRunway(oneMillionRunway)}.
+
+- Current cash is ${formatStartupUsd(startupDataset.company.currentCashUsd)} with a ${formatStartupUsd(MINIMUM_CASH_RESERVE_USD)} minimum reserve target, so usable cash is ${formatStartupUsd(usableCashUsd())}.
+- Current public-pricing sample: ${formatPricingUsd(publicPricingBaseline)}/mo. 1M-user public-pricing sample: about ${formatPricingUsd(publicPricingOneMillion)}/mo before discounts.
+- Full production cloud spend is already ${formatStartupUsd(currentCloudSpend)}/mo, so the real risk is not just the pricing sample. It is whether servers, database, storage, requests, and AI token usage scale close to linearly.
+- Enterprise contracts and committed-use discounts can lower cloud prices at 1 million users. A directional 10-35% discount range would put the public-pricing sample around ${formatPricingUsd(discountLow)}-${formatPricingUsd(discountHigh)}/mo, depending on provider, contract length, and minimum spend.
+
+Next steps:
+- Ask each cloud vendor for committed-use and startup credit options before traffic reaches the next step change.
+- Put hard monthly budgets on AI tokens, servers, and database growth.
+- Reprice the paid plan or usage tier before the 1M-user launch so revenue scales with infrastructure cost.`;
+}
+
+function buildAiInferenceFallbackAnswer() {
+	const currentAiSpend = startupDataset.aiTokenUsage.totalCostUsd;
+	const doubledAiSpend = currentAiSpend * 2;
+	const newNetBurn = startupDataset.businessMetrics.netBurnUsd + currentAiSpend;
+	const runwayLost =
+		startupDataset.company.currentCashUsd /
+			startupDataset.businessMetrics.netBurnUsd -
+		startupDataset.company.currentCashUsd / newNetBurn;
+
+	return `Using the local Runway dataset: doubling AI inference spend adds ${formatStartupUsd(currentAiSpend)}/mo and moves net burn from ${formatStartupUsd(startupDataset.businessMetrics.netBurnUsd)}/mo to about ${formatStartupUsd(newNetBurn)}/mo.
+
+- AI token spend rises from ${formatStartupUsd(currentAiSpend)}/mo to ${formatStartupUsd(doubledAiSpend)}/mo.
+- Cash runway falls from about ${formatRunway(startupDataset.company.currentCashUsd / startupDataset.businessMetrics.netBurnUsd)} to ${formatRunway(startupDataset.company.currentCashUsd / newNetBurn)}, a loss of roughly ${formatRunway(runwayLost)}.
+- OpenAI is the main driver at ${formatStartupUsd(startupDataset.aiTokenUsage.services[0].costUsd)}/mo, followed by Anthropic at ${formatStartupUsd(startupDataset.aiTokenUsage.services[1].costUsd)}/mo.
+- First actions: cap expensive model usage, route lower-risk prompts to cheaper models, and add customer-level usage limits before the next billing cycle.`;
+}
+
+function buildStripePayoutFallbackAnswer() {
+	const monthlyStripeIn = 137_240;
+	const monthlyStripeNet = 105_480;
+	const grossDelayImpact = (monthlyStripeIn / 30) * 7;
+	const netDelayImpact = (monthlyStripeNet / 30) * 7;
+	const adjustedCash = startupDataset.company.currentCashUsd - grossDelayImpact;
+
+	return `Using the local Runway dataset: a 7-day Stripe payout delay likely creates a ${formatStartupUsd(netDelayImpact)}-${formatStartupUsd(grossDelayImpact)} working-capital gap, not a major runway reset.
+
+- Current cash would look closer to ${formatStartupUsd(adjustedCash)} while those receipts are delayed.
+- Baseline net burn remains ${formatStartupUsd(startupDataset.businessMetrics.netBurnUsd)}/mo, so reserve runway moves only modestly, from ${formatRunway(runwayUntilReserveMonths(startupDataset.businessMetrics.netBurnUsd))} to about ${formatRunway((adjustedCash - MINIMUM_CASH_RESERVE_USD) / startupDataset.businessMetrics.netBurnUsd)}.
+- The risk is timing: payroll, cloud vendors, and AI vendors still leave cash on schedule while Stripe cash arrives later.
+- Actions: keep a two-week vendor-payment buffer, separate Stripe pending balance from operating cash, and avoid using delayed payouts to fund payroll.`;
+}
+
+function buildCostCutFallbackAnswer() {
+	const cloudBreakdown = startupDataset.cloudSpendBreakdown;
+
+	return `Using the local Runway dataset: cut compute/GPU spend first, then AI token usage. Those are the largest controllable non-payroll cost drivers this month.
+
+- Compute/GPU is ${formatStartupUsd(cloudBreakdown.computeGpuUsd)}/mo inside a ${formatStartupUsd(latestCloudSpend())}/mo cloud bill.
+- AI tokens are ${formatStartupUsd(startupDataset.aiTokenUsage.totalCostUsd)}/mo and growing faster than headcount.
+- Payroll is larger at ${formatStartupUsd(startupDataset.businessMetrics.payrollUsd)}/mo, but it is less reversible and should not be the first lever unless the runway target is already missed.
+- A 15% reduction in cloud plus a 20% reduction in AI tokens would save about ${formatStartupUsd(latestCloudSpend() * 0.15 + startupDataset.aiTokenUsage.totalCostUsd * 0.2)}/mo and extend reserve runway from ${formatRunway(runwayUntilReserveMonths(startupDataset.businessMetrics.netBurnUsd))} to about ${formatRunway(runwayUntilReserveMonths(startupDataset.businessMetrics.netBurnUsd - (latestCloudSpend() * 0.15 + startupDataset.aiTokenUsage.totalCostUsd * 0.2)))}.
+
+Next steps:
+- Shut down idle servers and right-size database capacity this week.
+- Add AI token budgets by customer and workflow.
+- Negotiate committed-use discounts only after the waste has been removed.`;
+}
+
+function buildGenericFallbackAnswer(connectedSourceIds: string[]) {
+	const connectedSourceLabel = connectedSourceIds.length
+		? connectedSourceIds.join(", ")
+		: "none";
+
+	return `Using the local Runway dataset: current net burn is ${formatStartupUsd(startupDataset.businessMetrics.netBurnUsd)}/mo, cash is ${formatStartupUsd(startupDataset.company.currentCashUsd)}, and reserve runway is about ${formatRunway(runwayUntilReserveMonths(startupDataset.businessMetrics.netBurnUsd))}.
+
+- Connected sources for this chat: ${connectedSourceLabel}.
+- Monthly revenue is ${formatStartupUsd(startupDataset.businessMetrics.mrrUsd)} against ${formatStartupUsd(startupDataset.businessMetrics.monthlyOperatingCostsUsd)} in monthly operating costs.
+- Cloud spend is ${formatStartupUsd(latestCloudSpend())}/mo and AI token spend is ${formatStartupUsd(startupDataset.aiTokenUsage.totalCostUsd)}/mo.
+- The nearest pressure point is variable infrastructure cost growing faster than revenue.
+
+Next steps:
+- Ask a specific what-if question about user growth, AI token spend, Stripe payout timing, or which vendor to cut first.
+- Use the ${formatStartupUsd(MINIMUM_CASH_RESERVE_USD)} reserve target as the floor when evaluating any scenario.`;
+}
+
+function usableCashUsd() {
+	return Math.max(
+		startupDataset.company.currentCashUsd - MINIMUM_CASH_RESERVE_USD,
+		0,
+	);
+}
+
+function runwayUntilReserveMonths(monthlyBurnUsd: number) {
+	if (monthlyBurnUsd <= 0) return Number.POSITIVE_INFINITY;
+
+	return usableCashUsd() / monthlyBurnUsd;
+}
+
+function formatRunway(months: number) {
+	if (!Number.isFinite(months)) return "unlimited runway";
+
+	return `${months.toFixed(1)} months (${Math.round(months * 30)} days)`;
 }
 
 async function getIamAccessToken(apiKey: string) {
